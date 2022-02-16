@@ -89,11 +89,11 @@ class ISTrainer(object):
         if cfg.multi_gpu:
             model = get_dp_wrapper(cfg.distributed)(model, device_ids=cfg.gpu_ids,
                                                     output_device=cfg.gpu_ids[0])
-
+        """
         if self.is_master:
             logger.info(model)
             logger.info(get_config_repr(model._config))
-
+        """
         self.device = cfg.device
         self.net = model.to(self.device)
         self.lr = optimizer_params['lr']
@@ -155,7 +155,6 @@ class ISTrainer(object):
             reduce_loss_dict(losses_logging)
 
             train_loss += losses_logging['overall'].item()
-
             if self.is_master:
                 for loss_name, loss_value in losses_logging.items():
                     self.sw.add_scalar(tag=f'{log_prefix}Losses/{loss_name}',
@@ -173,7 +172,7 @@ class ISTrainer(object):
                                    value=self.lr if not hasattr(self, 'lr_scheduler') else self.lr_scheduler.get_lr()[-1],
                                    global_step=global_step)
 
-                tbar.set_description(f'Epoch {epoch}, training loss {train_loss/(i+1):.4f}')
+                tbar.set_description(f'Epoch {epoch + 1}, training loss {train_loss/(i+1):.4f}')
                 for metric in self.train_metrics:
                     metric.log_states(self.sw, f'{log_prefix}Metrics/{metric.name}', global_step)
 
@@ -181,19 +180,19 @@ class ISTrainer(object):
             for metric in self.train_metrics:
                 self.sw.add_scalar(tag=f'{log_prefix}Metrics/{metric.name}',
                                    value=metric.get_epoch_value(),
-                                   global_step=epoch, disable_avg=True)
+                                   global_step=epoch + 1, disable_avg=True)
 
             save_checkpoint(self.net, self.cfg.CHECKPOINTS_PATH, prefix=self.task_prefix,
-                            epoch=None, multi_gpu=self.cfg.multi_gpu)
+                            epoch=None, multi_gpu=self.cfg.multi_gpu, verbose=False)
 
             if isinstance(self.checkpoint_interval, (list, tuple)):
                 checkpoint_interval = [x for x in self.checkpoint_interval if x[0] <= epoch][-1][1]
             else:
                 checkpoint_interval = self.checkpoint_interval
 
-            if epoch % checkpoint_interval == 0:
+            if (epoch + 1) % checkpoint_interval == 0:
                 save_checkpoint(self.net, self.cfg.CHECKPOINTS_PATH, prefix=self.task_prefix,
-                                epoch=epoch, multi_gpu=self.cfg.multi_gpu)
+                                epoch=epoch + 1, multi_gpu=self.cfg.multi_gpu)
 
         if hasattr(self, 'lr_scheduler'):
             self.lr_scheduler.step()
@@ -226,18 +225,18 @@ class ISTrainer(object):
             val_loss += batch_losses_logging['overall'].item()
 
             if self.is_master:
-                tbar.set_description(f'Epoch {epoch}, validation loss: {val_loss/(i + 1):.4f}')
+                tbar.set_description(f'Epoch {epoch + 1}, validation loss: {val_loss/(i + 1):.4f}')
                 for metric in self.val_metrics:
                     metric.log_states(self.sw, f'{log_prefix}Metrics/{metric.name}', global_step)
 
         if self.is_master:
             for loss_name, loss_values in losses_logging.items():
                 self.sw.add_scalar(tag=f'{log_prefix}Losses/{loss_name}', value=np.array(loss_values).mean(),
-                                   global_step=epoch, disable_avg=True)
+                                   global_step=epoch + 1, disable_avg=True)
 
             for metric in self.val_metrics:
                 self.sw.add_scalar(tag=f'{log_prefix}Metrics/{metric.name}', value=metric.get_epoch_value(),
-                                   global_step=epoch, disable_avg=True)
+                                   global_step=epoch + 1, disable_avg=True)
 
     def batch_forward(self, batch_data, validation=False):
         metrics = self.val_metrics if validation else self.train_metrics

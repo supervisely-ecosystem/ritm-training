@@ -15,6 +15,7 @@ def main():
 
     model_base_name = getattr(model_script, 'MODEL_NAME', None)
 
+    # TODO: dont forget
     args.distributed = 'WORLD_SIZE' in os.environ
     cfg = init_experiment(args, model_base_name)
 
