@@ -117,7 +117,7 @@ class ISTrainer(object):
         if start_epoch is None:
             start_epoch = self.cfg.start_epoch
 
-        logger.info(f'Starting Epoch: {start_epoch}')
+        logger.info(f'Starting Epoch: {start_epoch + 1}')
         logger.info(f'Total Epochs: {num_epochs}')
         for epoch in range(start_epoch, num_epochs):
             self.training(epoch)

@@ -44,7 +44,6 @@ class ISDataset(torch.utils.data.dataset.Dataset):
         self.points_sampler.sample_object(sample)
         points = np.array(self.points_sampler.sample_points())
         mask = self.points_sampler.selected_mask
-
         output = {
             'images': self.to_tensor(sample.image),
             'points': points.astype(np.float32),

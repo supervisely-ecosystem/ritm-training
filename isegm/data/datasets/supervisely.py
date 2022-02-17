@@ -23,11 +23,20 @@ class SuperviselyDataset(ISDataset):
         # self._buggy_objects = dict()
         # self._buggy_mask_thresh = buggy_mask_thresh
         classes_json = g.seg_project_meta.obj_classes.to_json()
-        classes_json = [obj for obj in classes_json if obj["title"] if obj['title'] != '__bg__']
+        classes_json = [obj for obj in classes_json if obj['title'] != '__bg__']
         self.palette = [obj["color"].lstrip('#') for obj in classes_json]
         self.palette = [[int(color[i:i + 2], 16) for i in (0, 2, 4)] for color in self.palette] # hex to rgb
+        # self.dataset_samples = []
         with open(os.path.join(g.project_dir_seg, f'{split}.txt'), 'r') as f:
             self.dataset_samples = [x.strip() for x in f.readlines()]
+        # TODO: do check that num_instances > 0 for each samples
+        """
+        for image_name in samples:
+            inst_mask = cv2.imread(str(self._insts_path / f'{image_name}.png'))
+            if not np.all(np.all(inst_mask == [0, 0, 0], axis=-1)):
+                self.dataset_samples.append(image_name)
+        """
+
 
     def get_sample(self, index):
         image_name = self.dataset_samples[index]
@@ -46,6 +55,7 @@ class SuperviselyDataset(ISDataset):
 
         # result_mask = self.remove_buggy_masks(index, result_mask)
         instances_ids, _ = get_labels_with_sizes(result_mask)
+
         return DSample(image, result_mask, objects_ids=instances_ids, sample_id=index)
 
     """

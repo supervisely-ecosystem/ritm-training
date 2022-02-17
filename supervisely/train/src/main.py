@@ -24,9 +24,12 @@ def main():
 
     sly.fs.mkdir(g.project_dir_seg)
 
+    # TODO: change classes to selected
+    classes_json = g.project_meta.obj_classes.to_json()
+    classes = [obj["title"] for obj in classes_json]
     sly.Project.to_segmentation_task(
         g.project_dir, g.project_dir_seg,
-        target_classes=["heart", "inner", "all", "obj"],
+        target_classes=classes,
         segmentation_type='instance'
     )
     shutil.rmtree(g.project_dir)
@@ -35,8 +38,8 @@ def main():
 
     image_filenames = os.listdir(os.path.join(g.project_dir_seg, 'ds0', 'img'))
     random.shuffle(image_filenames)
-    train_split = image_filenames[:14]
-    val_split = image_filenames[14:]
+    train_split = image_filenames[:12]
+    val_split = image_filenames[12:]
     with open(os.path.join(g.project_dir_seg,  'train.txt'), 'w') as f:
         for item in train_split:
             f.write(f"{item}\n")
