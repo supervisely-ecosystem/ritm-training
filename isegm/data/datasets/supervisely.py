@@ -7,26 +7,21 @@ import json
 
 from isegm.utils.misc import get_bbox_from_mask, get_labels_with_sizes
 from isegm.data.base import ISDataset
-from isegm.data.sample import DSample
+from sly_sample import Sample
 
 import sly_globals as g
 import splits
 
 
 class SuperviselyDataset(ISDataset):
-    def __init__(self, dataset_path, split='train', buggy_mask_thresh=0.0, **kwargs):
+    def __init__(self, dataset_path, split='train', **kwargs):
         super(SuperviselyDataset, self).__init__(**kwargs)
         assert split in {'train', 'val'}
 
         self.dataset_path = Path(dataset_path)
         self.dataset_split = split
-        self.ds_ind_to_name = {}
-        for ds_ind, dataset in enumerate(g.project_seg.datasets):
-            self.ds_ind_to_name[ds_ind] = dataset.name
         self._images_path = 'img'
         self._insts_path = 'seg'
-        # self._buggy_objects = dict()
-        # self._buggy_mask_thresh = buggy_mask_thresh
         classes_json = g.seg_project_meta.obj_classes.to_json()
         classes_json = [obj for obj in classes_json if obj['title'] != '__bg__']
         self.palette = [obj["color"].lstrip('#') for obj in classes_json]
@@ -75,30 +70,7 @@ class SuperviselyDataset(ISDataset):
             colormap = np.where(np.all(instances_mask == color, axis=-1))
             result_mask[colormap] = color_idx + 1
 
-        # result_mask = self.remove_buggy_masks(index, result_mask)
         instances_ids, _ = get_labels_with_sizes(result_mask)
 
-        return DSample(image, result_mask, objects_ids=instances_ids, sample_id=index)
+        return Sample(image, result_mask, objects_ids=instances_ids, sample_id=index)
 
-    """
-    def remove_buggy_masks(self, index, instances_mask):
-        if self._buggy_mask_thresh > 0.0:
-            buggy_image_objects = self._buggy_objects.get(index, None)
-            if buggy_image_objects is None:
-                buggy_image_objects = []
-                instances_ids, _ = get_labels_with_sizes(instances_mask)
-                for obj_id in instances_ids:
-                    obj_mask = instances_mask == obj_id
-                    mask_area = obj_mask.sum()
-                    bbox = get_bbox_from_mask(obj_mask)
-                    bbox_area = (bbox[1] - bbox[0] + 1) * (bbox[3] - bbox[2] + 1)
-                    obj_area_ratio = mask_area / bbox_area
-                    if obj_area_ratio < self._buggy_mask_thresh:
-                        buggy_image_objects.append(obj_id)
-
-                self._buggy_objects[index] = buggy_image_objects
-            for obj_id in buggy_image_objects:
-                instances_mask[instances_mask == obj_id] = 0
-
-        return instances_mask
-    """

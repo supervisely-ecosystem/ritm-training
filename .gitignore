@@ -6,6 +6,5 @@ pretrained_models
 *.so
 *.ipynb_checkpoints*
 *.yml
-*.json
 
 supervisely/train/secret_debug.env

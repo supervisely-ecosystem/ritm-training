@@ -8,7 +8,7 @@ def get_models_list():
         {
             "config": "hrnet18_itermask_3p.py",
             "weightsFile": "sbd_h18_itermask.pth",
-            "model": "HRNet18 IT-M",
+            "model": "(SBD) HRNet18 IT-M",
             "dataset": "SBD",
             "sbd_NoC_85": "3.39",
             "sbd_NoC_90": "5.43",
@@ -19,7 +19,7 @@ def get_models_list():
         {
             "config": "hrnet18s_itermask_3p.py",
             "weightsFile": "coco_lvis_h18s_itermask.pth",
-            "model": "HRNet18s IT-M",
+            "model": "(COCO) HRNet18s IT-M ",
             "dataset": "COCO + LVIS",
             "sbd_NoC_85": "4.04",
             "sbd_NoC_90": "6.48",
@@ -30,7 +30,7 @@ def get_models_list():
         {
             "config": "hrnet18_itermask_3p.py",
             "weightsFile": "coco_lvis_h18_itermask.pth",
-            "model": "HRNet18 IT-M",
+            "model": "(COCO) HRNet18 IT-M",
             "dataset": "COCO + LVIS",
             "sbd_NoC_85": "3.80",
             "sbd_NoC_90": "6.06",
@@ -41,7 +41,7 @@ def get_models_list():
         {
             "config": "hrnet32_itermask_3p.py",
             "weightsFile": "coco_lvis_h32_itermask.pth",
-            "model": "HRNet32 IT-M",
+            "model": "(COCO) HRNet32 IT-M",
             "dataset": "COCO + LVIS",
             "sbd_NoC_85": "3.59",
             "sbd_NoC_90": "5.71",

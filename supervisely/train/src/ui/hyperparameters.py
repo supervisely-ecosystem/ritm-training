@@ -25,6 +25,7 @@ def init_general(state):
     state["workersPerGPU"] = 2
     state["checkpointInterval"] = 10
     state["visualizationInterval"] = 1
+    state["maxNumPoints"] = 12
 
 def init_optimizer(state):
     state["optimizer"] = "adam"

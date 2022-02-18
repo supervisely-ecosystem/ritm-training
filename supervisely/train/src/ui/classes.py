@@ -49,9 +49,9 @@ def use_classes(api: sly.Api, task_id, context, state, app_logger):
     fields = [
         {"field": "state.selectedClasses", "payload": state["selectedClasses"]},
         {"field": "data.done3", "payload": True},
-        {"field": "state.collapsed5", "payload": False},
-        {"field": "state.disabled5", "payload": False},
-        {"field": "state.activeStep", "payload": 5},
+        {"field": "state.collapsed4", "payload": False},
+        {"field": "state.disabled4", "payload": False},
+        {"field": "state.activeStep", "payload": 4},
     ]
     g.api.app.set_fields(g.task_id, fields)
 

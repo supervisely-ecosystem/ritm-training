@@ -77,4 +77,6 @@ def get_random_item():
     ds = project_fs.datasets.get(ds_name)
     items = list(ds)
     item_name = random.choice(items)
+    while get_image_info_from_cache(ds_name, item_name).labels_count == 0:
+        item_name = random.choice(items)
     return ds_name, item_name

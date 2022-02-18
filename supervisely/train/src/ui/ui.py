@@ -2,7 +2,7 @@ import supervisely as sly
 import sly_globals as g
 import input_project as input_project
 import splits as train_val_split
-# import augs
+import augs
 import architectures as model_architectures
 import hyperparameters
 import classes
@@ -16,7 +16,7 @@ def init(data, state):
     input_project.init(data, state)
     train_val_split.init(g.project_info, g.project_meta, data, state)
     classes.init(g.api, data, state, g.project_id, g.project_meta)
-    # augs.init(data, state)
+    augs.init(data, state)
     model_architectures.init(data, state)
     hyperparameters.init(data, state)
     monitoring.init(data, state)
@@ -37,13 +37,11 @@ def restart(api: sly.Api, task_id, context, state, app_logger):
             classes.restart(data, state)
         else:
             classes.init(g.api, data, state, g.project_id, g.project_meta)
-    '''
     if restart_from_step <= 4:
         if restart_from_step == 4:
             augs.restart(data, state)
         else:
             augs.init(data, state)
-    '''
     if restart_from_step <= 5:
         if restart_from_step == 5:
             model_architectures.restart(data, state)

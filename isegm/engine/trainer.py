@@ -96,11 +96,7 @@ class ISTrainer(object):
         if cfg.multi_gpu:
             model = get_dp_wrapper(cfg.distributed)(model, device_ids=cfg.gpu_ids,
                                                     output_device=cfg.gpu_ids[0])
-        """
-        if self.is_master:
-            logger.info(model)
-            logger.info(get_config_repr(model._config))
-        """
+
         self.device = cfg.device
         self.net = model.to(self.device)
         self.lr = optimizer_params['lr']
@@ -128,6 +124,8 @@ class ISTrainer(object):
             self.progress_epoch = sly.Progress("Epochs", num_epochs)
         logger.info(f'Starting Epoch: {start_epoch + 1}')
         logger.info(f'Total Epochs: {num_epochs}')
+
+        self.validation(0)
         for epoch in range(start_epoch, num_epochs):
             self.training(epoch)
             if validation:

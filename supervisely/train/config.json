@@ -1,0 +1,22 @@
+{
+  "name": "RITM training",
+  "type": "app",
+  "restart_policy": "on_error",
+  "categories": [
+    "neural network",
+    "instance segmentation",
+    "SmartTool"
+  ],
+  "description": "Dashboard to configure, start and monitor training",
+  "need_gpu": true,
+  "docker_image": "supervisely/ritm-training:1.0.0",
+  "main_script": "supervisely/train/src/main.py",
+  "gui_template": "supervisely/train/src/gui.html",
+  "task_location": "workspace_tasks",
+  "icon": "",
+  "context_menu": {
+    "target": ["images_project"],
+    "context_root": "Neural Networks",
+    "context_category": "RITM"
+  }
+}

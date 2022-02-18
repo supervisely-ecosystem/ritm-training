@@ -4,31 +4,28 @@ import sly_globals as g
 from supervisely.app.widgets import CompareGallery
 import input_project
 
-'''
 _templates = [
     {
-        "config": "train/augs/seg_simple.json",
+        "config": "supervisely/train/augs/seg_simple.json",
         "name": "Only Color",
     },
     {
-        "config": "train/augs/seg_simple_rotate.json",
+        "config": "supervisely/train/augs/seg_simple_rotate.json",
         "name": "Light: color + rotate",
     },
     {
-        "config": "train/augs/seg_simple_rotate_crop.json",
+        "config": "supervisely/train/augs/seg_simple_rotate_crop.json",
         "name": "Medium: light + crop",
     },
     {
-        "config": "train/augs/seg_simple_rotate_crop_flipLR.json",
+        "config": "supervisely/train/augs/seg_simple_rotate_crop_flipLR.json",
         "name": "Heavy: medium + flipLR",
     },
     {
-        "config": "train/augs/seg_simple_rotate_crop_flipLR_flipUD.json",
+        "config": "supervisely/train/augs/seg_simple_rotate_crop_flipLR_flipUD.json",
         "name": "Heavy + flipUD",
     }
 ]
-'''
-_templates = []
 
 _custom_pipeline_path = None
 custom_pipeline = None
@@ -91,7 +88,7 @@ def init(data, state):
         "highlightActiveLine": False
     }
 
-    state["customAugsPath"] = ""  # "/mmclass-heavy-no-fliplr.json"  # @TODO: for debug
+    state["customAugsPath"] = ""
     data["customAugsPy"] = None
 
     global gallery1, gallery2
@@ -165,6 +162,7 @@ def use_augs(api: sly.Api, task_id, context, state, app_logger):
         augs_config_path = os.path.join(g.my_app.data_dir, "augs_config.json")
         if augs_json_config is None:
             augs_json_config = sly.json.load_json_file(os.path.join(g.root_source_dir, _templates[0]["config"]))
+
         sly.json.dump_json_file(augs_json_config, augs_config_path)
 
         augs_py_path = os.path.join(g.my_app.data_dir, "augs_preview.py")

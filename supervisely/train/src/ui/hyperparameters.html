@@ -48,6 +48,14 @@
                     <span class="ml5">epochs</span>
                 </div>
             </sly-field>
+            <sly-field title="Max points number"
+               description="Max number of positive and negative points (both separately) to sample during training">
+                <div class="fflex">
+                    <el-input-number v-model="state.maxNumPoints"
+                                     :min="1" :max="50" :disabled="data.done6">
+                    </el-input-number>
+                </div>
+            </sly-field>
         </el-tab-pane>
 
         <el-tab-pane label="(Advanced) Optimizer" name="optimizer" :disabled="data.done6">
@@ -57,6 +65,7 @@
                     <a href="https://pytorch.org/docs/1.10.0/optim.html#algorithms" target="_blank">
                         pytorch documentation
                     </a>
+                    Default learning rate scheduler is Cosine Annealing.
                 </div>
                 <el-select class=mt10 v-model="state.optimizer" :disabled="data.done6">
                     <el-option key="sgd" label="SGD" value="sgd"></el-option>
