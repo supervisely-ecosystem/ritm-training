@@ -4,11 +4,9 @@ import sly_globals as g
 
 
 def init_general(state):
-    state["epochs"] = 150
+    state["epochs"] = 20
     state["gpusId"] = 0
 
-    state["valInterval"] = 1
-    state["logConfigInterval"] = 5
     state["input_size"] = {
         "value": {
             "width": 460,
@@ -25,9 +23,30 @@ def init_general(state):
     }
     state["batchSizePerGPU"] = 4
     state["workersPerGPU"] = 2
+    state["checkpointInterval"] = 10
+    state["visualizationInterval"] = 1
+
+def init_optimizer(state):
+    state["optimizer"] = "adam"
+    state["lr"] = 1e-4
+    state["beta1"] = 0.9
+    state["beta2"] = 0.999
+    state["weightDecay"] = 0
+    state["amsgrad"] = False
+    state["momentum"] = 0.9
+    state["nesterov"] = False
+
+def init_loss(data, state):
+    data["availableLosses"] = ["SigmoidBinaryCrossEntropyLoss", "NormalizedFocalLossSigmoid", "FocalLoss", "SoftIoU"]
+    state["instanceLoss"] = "SigmoidBinaryCrossEntropyLoss"
+    state["instanceAuxLoss"] = "SigmoidBinaryCrossEntropyLoss"
+    state["instanceLossWeight"] = 1.0
+    state["instanceAuxLossWeight"] = 0.4
 
 def init(data, state):
     init_general(state)
+    init_optimizer(state)
+    init_loss(data, state)
 
     state["currentTab"] = "general"
     state["collapsed6"] = True

@@ -190,9 +190,6 @@ class ISTrainer(object):
                     if '_loss' in k and hasattr(v, 'log_states') and self.loss_cfg.get(k + '_weight', 0.0) > 0:
                         v.log_states(self.sw, f'{log_prefix}Losses/{k}', global_step)
 
-                if self.image_dump_interval > 0 and global_step % self.image_dump_interval == 0:
-                    self.save_visualization(splitted_batch_data, outputs, global_step, prefix='train')
-
                 lr_val = self.lr if not hasattr(self, 'lr_scheduler') else self.lr_scheduler.get_lr()[-1]
                 g.sly_charts['lr'].append(x=round(global_step / len(tbar), 2), y=round(lr_val, 7),
                                               series_name='LR')
@@ -205,6 +202,9 @@ class ISTrainer(object):
                     metric.log_states(self.sw, f'{log_prefix}Metrics/{metric.name}', global_step)
 
         if self.is_master:
+            if self.image_dump_interval > 0 and (epoch + 1) % self.image_dump_interval == 0:
+                self.save_visualization(splitted_batch_data, outputs, epoch + 1, prefix='train')
+
             for metric in self.train_metrics:
                 self.sw.add_scalar(tag=f'{log_prefix}Metrics/{metric.name}',
                                    value=metric.get_epoch_value(),
@@ -259,6 +259,9 @@ class ISTrainer(object):
                     metric.log_states(self.sw, f'{log_prefix}Metrics/{metric.name}', global_step)
 
         if self.is_master:
+            if self.image_dump_interval > 0 and (epoch + 1) % self.image_dump_interval == 0:
+                self.save_visualization(splitted_batch_data, outputs, epoch + 1, prefix='val')
+
             for loss_name, loss_values in losses_logging.items():
                 self.sw.add_scalar(tag=f'{log_prefix}Losses/{loss_name}', value=np.array(loss_values).mean(),
                                    global_step=epoch + 1, disable_avg=True)
@@ -347,14 +350,14 @@ class ISTrainer(object):
 
         return total_loss
 
-    def save_visualization(self, splitted_batch_data, outputs, global_step, prefix):
+    def save_visualization(self, splitted_batch_data, outputs, epoch, prefix):
         output_images_path = self.cfg.VIS_PATH / prefix
         if self.task_prefix:
             output_images_path /= self.task_prefix
 
         if not output_images_path.exists():
             output_images_path.mkdir(parents=True)
-        image_name_prefix = f'{global_step:06d}'
+        image_name_prefix = f'{epoch:06d}'
 
         def _save_image(suffix, image):
             cv2.imwrite(str(output_images_path / f'{image_name_prefix}_{suffix}.jpg'),

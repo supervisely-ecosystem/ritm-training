@@ -3,9 +3,12 @@ from functools import partial
 from sly_train_progress import init_progress, _update_progress_ui
 import sly_globals as g
 import os
+import sys
 import shutil
 from train import main as train_model
 from sly_train_args import init_script_arguments
+# it is needed to use losses
+from isegm.model.losses import *
 
 _open_lnk_name = "open_app.lnk"
 
@@ -38,7 +41,7 @@ def init_charts(data, state):
                                       title="Train Loss", series_names=["train"],
                                       smoothing=state["smoothing"], ydecimals=6, xdecimals=2),
         'val_iou': sly.app.widgets.Chart(g.task_id, g.api, "data.chartIoU",
-                                        title="Adaptive UoI", series_names=["val"],
+                                        title="Val Adaptive UoI", series_names=["val"],
                                         smoothing=state["smoothing"], ydecimals=6, xdecimals=2)
     }
 
@@ -70,6 +73,31 @@ def upload_artifacts_and_log_progress():
     res_dir = g.api.file.upload_directory(g.team_id, g.artifacts_dir, remote_dir, progress_size_cb=progress_cb)
     return res_dir
 
+
+def init_cfg(state):
+    g.train_cfg["num_epochs"] = state["epochs"]
+    g.train_cfg["input_size"] = (state["input_size"]["value"]["height"], state["input_size"]["value"]["height"])
+    g.train_cfg["checkpoint_interval"] = state["checkpointInterval"]
+    g.train_cfg["visualization_interval"] = state["visualizationInterval"]
+    g.train_cfg["optimizer"] = state["optimizer"]
+
+    g.train_cfg["optim_params"] = {}
+    g.train_cfg["optim_params"]["lr"] = state["lr"]
+    g.train_cfg["optim_params"]["weight_decay"] = state["weightDecay"]
+    if state["optimizer"] in ["adam", "adamw"]:
+        g.train_cfg["optim_params"]["betas"] = (state["beta1"], state["beta2"])
+        g.train_cfg["optim_params"]["amsgrad"] = state["amsgrad"]
+    if state["optimizer"] == "sgd":
+        g.train_cfg["optim_params"]["momentum"] = state["momentum"]
+        g.train_cfg["optim_params"]["nesterov"] = state["nesterov"]
+
+
+    g.train_cfg["instance_loss"] = getattr(sys.modules[__name__], state["instanceLoss"])
+    g.train_cfg["instance_aux_loss"] = getattr(sys.modules[__name__], state["instanceAuxLoss"])
+    g.train_cfg["instance_loss_weight"] = state["instanceLossWeight"]
+    g.train_cfg["instance_aux_loss_weight"] = state["instanceAuxLossWeight"]
+
+
 @g.my_app.callback("train")
 @sly.timeit
 @g.my_app.ignore_errors_and_show_dialog_window()
@@ -88,6 +116,7 @@ def train(api: sly.Api, task_id, context, state, app_logger):
         g.project_seg = sly.Project(g.project_dir_seg, sly.OpenMode.READ)
         g.seg_project_meta = g.project_seg.meta
 
+        init_cfg(state)
         init_script_arguments(state)
         cfg = train_model()
         # shutil.copyfile(os.path.join(cfg.CHECKPOINTS_PATH, ""), "")

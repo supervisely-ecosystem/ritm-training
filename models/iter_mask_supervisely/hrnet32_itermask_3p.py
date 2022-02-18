@@ -1,6 +1,5 @@
 from isegm.utils.exp_imports.default import *
 import sly_globals as g
-import os
 
 MODEL_NAME = 'hrnet32'
 
@@ -12,7 +11,7 @@ def main(cfg):
 
 def init_model(cfg):
     model_cfg = edict()
-    model_cfg.crop_size = (460, 460)
+    model_cfg.crop_size = g.train_cfg["input_size"]
     model_cfg.num_max_points = 24
 
     model = HRNetModel(width=32, ocr_width=128, with_aux_output=True, use_leaky_relu=True,
@@ -26,16 +25,15 @@ def init_model(cfg):
 
 
 def train(model, cfg, model_cfg):
-    cfg.batch_size = 32 if cfg.batch_size < 1 else cfg.batch_size
+    cfg.batch_size = cfg.batch_size
     cfg.val_batch_size = cfg.batch_size
     crop_size = model_cfg.crop_size
 
     loss_cfg = edict()
-    # loss_cfg.instance_loss = NormalizedFocalLossSigmoid(alpha=0.5, gamma=2)
-    loss_cfg.instance_loss = SigmoidBinaryCrossEntropyLoss()
-    loss_cfg.instance_loss_weight = 1.0
-    loss_cfg.instance_aux_loss = SigmoidBinaryCrossEntropyLoss()
-    loss_cfg.instance_aux_loss_weight = 0
+    loss_cfg.instance_loss = g.train_cfg["instance_loss"]()
+    loss_cfg.instance_loss_weight = g.train_cfg["instance_loss_weight"]
+    loss_cfg.instance_aux_loss = g.train_cfg["instance_aux_loss"]()
+    loss_cfg.instance_aux_loss_weight = g.train_cfg["instance_aux_loss_weight"]
 
     train_augmentator = Compose([
         UniformRandomResize(scale_range=(0.75, 1.25)),
@@ -73,24 +71,22 @@ def train(model, cfg, model_cfg):
         points_sampler=points_sampler
     )
 
-    optimizer_params = {
-        'lr': 1e-4, 'betas': (0.9, 0.999), 'eps': 1e-8
-    }
+    optimizer_params = g.train_cfg["optim_params"]
 
     # lr_scheduler = partial(torch.optim.lr_scheduler.MultiStepLR,
     #                        milestones=[40, 100, 130], gamma=0.1)
-    num_epochs = 50
+
     lr_scheduler = partial(torch.optim.lr_scheduler.CosineAnnealingLR,
-                           T_max=num_epochs, eta_min=5e-7)
+                           T_max=g.train_cfg["num_epochs"], eta_min=5e-7)
 
     trainer = ISTrainer(model, cfg, model_cfg, loss_cfg,
                         trainset, valset,
-                        optimizer='adam',
+                        optimizer=g.train_cfg["optimizer"],
                         optimizer_params=optimizer_params,
                         lr_scheduler=lr_scheduler,
-                        checkpoint_interval=100,
-                        image_dump_interval=10,
+                        checkpoint_interval=g.train_cfg["checkpoint_interval"],
+                        image_dump_interval=g.train_cfg["visualization_interval"],
                         metrics=[AdaptiveIoU()],
                         max_interactive_points=model_cfg.num_max_points,
                         max_num_next_clicks=5)
-    trainer.run(num_epochs=num_epochs)
+    trainer.run(num_epochs=g.train_cfg["num_epochs"])
