@@ -26,12 +26,6 @@
         </div>
     </div>
 
-    <sly-field v-if="data.eta" class="mt10"
-               title="ETA"
-               description="Gives an estimate of roughly how long the whole training process will take">
-        <b style="color: #20a0ff"><i class="zmdi zmdi-time-countdown mr5"></i>{{data.eta}}</b>
-    </sly-field>
-
     <div v-if="data.progressUploadDir && !data.outputUrl" class="mt10">
         <div style="color: #20a0ff">
             {{data.progressUploadDir}}: {{data.progressCurrentUploadDir}} / {{data.progressTotalUploadDir}}
@@ -52,5 +46,50 @@
             Validation...
         </div>
         <el-progress :percentage="data.progressPercentIter"></el-progress>
+    </div>
+
+    <div class="mt15" v-if="state.started || data.outputUrl">
+        <sly-field title="" description="" style="align-items: center">
+            <sly-icon slot="icon" :options="{ color: '#006ad4', bgColor: '#e0f2ff', rounded: false }">
+                <i class="zmdi zmdi-trending-up"></i>
+            </sly-icon>
+            <div slot="title">
+                <span style="font-weight: 500">
+                    Charts Smoothing
+                </span>
+                <el-slider
+                        class="el-slider-center"
+                        :value="state.smoothing"
+                        :min="0" :max="0.95" :step="0.05"
+                        style="width: 280px;"
+                        @input="(val)=>{
+                                state.smoothing = val;
+                                data.chartLoss.options.smoothingWeight = val;
+                                data.chartIoU.options.smoothingWeight = val;
+                            }"
+                >
+                </el-slider>
+            </div>
+
+        </sly-field>
+        <sly-field title="Training charts" description="Real-time training metrics">
+            <div class="fflex">
+                <sly-line-chart
+                        style="width: 33%;"
+                        :options.sync="data.chartLR.options"
+                        :content="data.chartLR.series">
+                </sly-line-chart>
+                <sly-line-chart
+                        style="width: 33%;"
+                        :options.sync="data.chartLoss.options"
+                        :content="data.chartLoss.series">
+                </sly-line-chart>
+                <sly-line-chart
+                        style="width: 33%;"
+                        :options.sync="data.chartIoU.options"
+                        :content="data.chartIoU.series">
+                </sly-line-chart>
+            </div>
+        </sly-field>
     </div>
 </sly-card>

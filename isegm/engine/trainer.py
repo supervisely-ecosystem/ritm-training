@@ -52,6 +52,7 @@ class ISTrainer(object):
         self.prev_mask_drop_prob = prev_mask_drop_prob
         self.progress_epoch = None
         self.progress_iter = None
+        self.best_val_metric = 0
 
         if cfg.distributed:
             cfg.batch_size //= cfg.ngpus
@@ -177,6 +178,8 @@ class ISTrainer(object):
             reduce_loss_dict(losses_logging)
 
             train_loss += losses_logging['overall'].item()
+            g.sly_charts['loss'].append(x=round(global_step / len(tbar), 2), y=round(losses_logging['overall'].item(), 8),
+                                      series_name='train')
             if self.is_master:
                 for loss_name, loss_value in losses_logging.items():
                     self.sw.add_scalar(tag=f'{log_prefix}Losses/{loss_name}',
@@ -190,8 +193,11 @@ class ISTrainer(object):
                 if self.image_dump_interval > 0 and global_step % self.image_dump_interval == 0:
                     self.save_visualization(splitted_batch_data, outputs, global_step, prefix='train')
 
+                lr_val = self.lr if not hasattr(self, 'lr_scheduler') else self.lr_scheduler.get_lr()[-1]
+                g.sly_charts['lr'].append(x=round(global_step / len(tbar), 2), y=round(lr_val, 7),
+                                              series_name='LR')
                 self.sw.add_scalar(tag=f'{log_prefix}States/learning_rate',
-                                   value=self.lr if not hasattr(self, 'lr_scheduler') else self.lr_scheduler.get_lr()[-1],
+                                   value=round(lr_val, 7),
                                    global_step=global_step)
 
                 tbar.set_description(f'Epoch {epoch + 1}, training loss {train_loss/(i+1):.4f}')
@@ -258,6 +264,16 @@ class ISTrainer(object):
                                    global_step=epoch + 1, disable_avg=True)
 
             for metric in self.val_metrics:
+                if metric.name == 'AdaptiveIoU':
+                    metric_val = metric.get_epoch_value()
+                    g.sly_charts['val_iou'].append(x=epoch + 1, y=metric_val,
+                                                   series_name='val')
+
+                    if metric_val > self.best_val_metric:
+                        self.best_val_metric = metric_val
+                        save_checkpoint(self.net, self.cfg.CHECKPOINTS_PATH, prefix=self.task_prefix,
+                                        epoch=None, multi_gpu=self.cfg.multi_gpu, best=True)
+
                 self.sw.add_scalar(tag=f'{log_prefix}Metrics/{metric.name}', value=metric.get_epoch_value(),
                                    global_step=epoch + 1, disable_avg=True)
 

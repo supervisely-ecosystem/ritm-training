@@ -16,7 +16,7 @@ def init(data, state):
     data["eta"] = None
     state["isValidation"] = False
 
-    # init_charts(data, state)
+    init_charts(data, state)
 
     state["collapsed7"] = True
     state["disabled7"] = True
@@ -26,6 +26,24 @@ def init(data, state):
     state["preparingData"] = False
     data["outputName"] = None
     data["outputUrl"] = None
+
+def init_charts(data, state):
+    state["smoothing"] = 0.6
+
+    g.sly_charts = {
+        'lr': sly.app.widgets.Chart(g.task_id, g.api, "data.chartLR",
+                                    title="LR", series_names=["LR"],
+                                    ydecimals=6, xdecimals=2),
+        'loss': sly.app.widgets.Chart(g.task_id, g.api, "data.chartLoss",
+                                      title="Train Loss", series_names=["train"],
+                                      smoothing=state["smoothing"], ydecimals=6, xdecimals=2),
+        'val_iou': sly.app.widgets.Chart(g.task_id, g.api, "data.chartIoU",
+                                        title="Adaptive UoI", series_names=["val"],
+                                        smoothing=state["smoothing"], ydecimals=6, xdecimals=2)
+    }
+
+    for current_chart in g.sly_charts.values():
+        current_chart.init_data(data)
 
 def _save_link_to_ui(local_dir, app_url):
     # save report to file *.lnk (link to report)
@@ -60,13 +78,10 @@ def train(api: sly.Api, task_id, context, state, app_logger):
     try:
         sly.json.dump_json_file(state, os.path.join(g.info_dir, "ui_state.json"))
 
-        # TODO: change classes to selected
-        classes_json = g.project_meta.obj_classes.to_json()
-        classes = [obj["title"] for obj in classes_json]
         os.makedirs(g.project_dir_seg, exist_ok=True)
         sly.Project.to_segmentation_task(
             g.project_dir, g.project_dir_seg,
-            target_classes=classes,
+            target_classes=state["selectedClasses"],
             segmentation_type='instance'
         )
         shutil.rmtree(g.project_dir)

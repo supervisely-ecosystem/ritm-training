@@ -110,10 +110,13 @@ def select_model(api: sly.Api, task_id, context, state, app_logger):
 
     else:
         weights_file = None
+        config_file = None
         for model in get_models_list():
             if state["selectedModel"] == model["model"]:
                 weights_file = model["weightsFile"]
+                config_file = model["config"]
         g.local_weights_path = os.path.join(g.models_source_dir, weights_file)
+        g.model_config_local_path = os.path.join(g.root_source_dir, "models", "iter_mask_supervisely", config_file)
 
     fields = [
         {"field": "data.done5", "payload": True},

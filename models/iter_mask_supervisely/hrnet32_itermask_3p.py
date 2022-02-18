@@ -13,7 +13,7 @@ def main(cfg):
 def init_model(cfg):
     model_cfg = edict()
     model_cfg.crop_size = (460, 460)
-    model_cfg.num_max_points = 12
+    model_cfg.num_max_points = 24
 
     model = HRNetModel(width=32, ocr_width=128, with_aux_output=True, use_leaky_relu=True,
                        use_rgb_conv=False, use_disks=True, norm_radius=5, with_prev_mask=True)
@@ -35,10 +35,10 @@ def train(model, cfg, model_cfg):
     loss_cfg.instance_loss = SigmoidBinaryCrossEntropyLoss()
     loss_cfg.instance_loss_weight = 1.0
     loss_cfg.instance_aux_loss = SigmoidBinaryCrossEntropyLoss()
-    loss_cfg.instance_aux_loss_weight = 0.4
+    loss_cfg.instance_aux_loss_weight = 0
 
     train_augmentator = Compose([
-        UniformRandomResize(scale_range=(0.75, 1.40)),
+        UniformRandomResize(scale_range=(0.75, 1.25)),
         Flip(),
         RandomRotate90(),
         PadIfNeeded(min_height=crop_size[0], min_width=crop_size[1], border_mode=0),
@@ -74,12 +74,12 @@ def train(model, cfg, model_cfg):
     )
 
     optimizer_params = {
-        'lr': 5e-4, 'betas': (0.9, 0.999), 'eps': 1e-8
+        'lr': 1e-4, 'betas': (0.9, 0.999), 'eps': 1e-8
     }
 
     # lr_scheduler = partial(torch.optim.lr_scheduler.MultiStepLR,
     #                        milestones=[40, 100, 130], gamma=0.1)
-    num_epochs = 10
+    num_epochs = 50
     lr_scheduler = partial(torch.optim.lr_scheduler.CosineAnnealingLR,
                            T_max=num_epochs, eta_min=5e-7)
 
@@ -88,9 +88,9 @@ def train(model, cfg, model_cfg):
                         optimizer='adam',
                         optimizer_params=optimizer_params,
                         lr_scheduler=lr_scheduler,
-                        checkpoint_interval=10,
+                        checkpoint_interval=100,
                         image_dump_interval=10,
                         metrics=[AdaptiveIoU()],
                         max_interactive_points=model_cfg.num_max_points,
-                        max_num_next_clicks=3)
+                        max_num_next_clicks=5)
     trainer.run(num_epochs=num_epochs)

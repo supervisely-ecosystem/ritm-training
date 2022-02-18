@@ -25,7 +25,7 @@ def _update_progress_ui(index, api: sly.Api, task_id, progress: sly.Progress, st
         api.app.set_fields(task_id, fields)
         # if stdout_print is True:
         #     #progress.print_progress()
-        progress.report_progress()
+        # progress.report_progress()
 
 
 def get_progress_cb(index, message, total, is_size=False, min_report_percent=5, upd_func=update_progress):

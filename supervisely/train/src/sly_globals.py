@@ -55,3 +55,4 @@ local_weights_path = None
 model_config_local_path = None
 
 seg_project_meta = None
+sly_charts = {}

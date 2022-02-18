@@ -27,7 +27,7 @@ class TrainMetric(object):
 
 
 class AdaptiveIoU(TrainMetric):
-    def __init__(self, init_thresh=0.4, thresh_step=0.025, thresh_beta=0.99, iou_beta=0.9,
+    def __init__(self, init_thresh=0.5, thresh_step=0.025, thresh_beta=0.99, iou_beta=0.9,
                  ignore_label=-1, from_logits=True,
                  pred_output='instances', gt_output='instances'):
         super().__init__(pred_outputs=(pred_output,), gt_outputs=(gt_output,))
@@ -59,7 +59,7 @@ class AdaptiveIoU(TrainMetric):
                 max_iou = temp_iou
                 best_thresh = t
 
-        self._iou_thresh = self._thresh_beta * self._iou_thresh + (1 - self._thresh_beta) * best_thresh
+        # self._iou_thresh = self._thresh_beta * self._iou_thresh + (1 - self._thresh_beta) * best_thresh
         self._ema_iou = self._iou_beta * self._ema_iou + (1 - self._iou_beta) * max_iou
         self._epoch_iou_sum += max_iou
         self._epoch_batch_count += 1
