@@ -17,6 +17,10 @@ from isegm.utils.serialization import get_config_repr
 from isegm.utils.distributed import get_dp_wrapper, get_sampler, reduce_loss_dict
 from .optimizer import get_optimizer
 
+import supervisely as sly
+import sly_globals as g
+from sly_train_progress import add_progress_to_request
+
 
 class ISTrainer(object):
     def __init__(self, model, cfg, model_cfg, loss_cfg,
@@ -46,6 +50,8 @@ class ISTrainer(object):
 
         self.click_models = click_models
         self.prev_mask_drop_prob = prev_mask_drop_prob
+        self.progress_epoch = None
+        self.progress_iter = None
 
         if cfg.distributed:
             cfg.batch_size //= cfg.ngpus
@@ -117,6 +123,8 @@ class ISTrainer(object):
         if start_epoch is None:
             start_epoch = self.cfg.start_epoch
 
+        if self.progress_epoch is None:
+            self.progress_epoch = sly.Progress("Epochs", num_epochs)
         logger.info(f'Starting Epoch: {start_epoch + 1}')
         logger.info(f'Total Epochs: {num_epochs}')
         for epoch in range(start_epoch, num_epochs):
@@ -136,12 +144,26 @@ class ISTrainer(object):
         tbar = tqdm(self.train_data, file=self.tqdm_out, ncols=100)\
             if self.is_master else self.train_data
 
+        if self.progress_iter is None:
+            self.progress_iter = sly.Progress("Iterations", len(tbar))
+
+        fields = []
+        self.progress_epoch.set_current_value(epoch + 1)
+        add_progress_to_request(fields, "Epoch", self.progress_epoch)
+        fields.append({"field": "state.isValidation", "payload": False})
+        g.api.app.set_fields(g.task_id, fields)
+
         for metric in self.train_metrics:
             metric.reset_epoch_stats()
 
         self.net.train()
         train_loss = 0.0
         for i, batch_data in enumerate(tbar):
+            fields = []
+            self.progress_iter.set_current_value(i + 1)
+            add_progress_to_request(fields, "Iter", self.progress_iter)
+            g.api.app.set_fields(g.task_id, fields)
+
             global_step = epoch * len(self.train_data) + i
 
             loss, losses_logging, splitted_batch_data, outputs = \
@@ -198,6 +220,7 @@ class ISTrainer(object):
             self.lr_scheduler.step()
 
     def validation(self, epoch):
+        g.api.app.set_field(g.task_id, "state.isValidation", True)
         if self.sw is None and self.is_master:
             self.sw = SummaryWriterAvg(log_dir=str(self.cfg.LOGS_PATH),
                                        flush_secs=10, dump_period=self.tb_dump_period)

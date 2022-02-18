@@ -1,39 +1,66 @@
-import errno
 import os
-import requests
 from pathlib import Path
-
 import sly_globals as g
-import supervisely_lib as sly
-from sly_train_progress import get_progress_cb, reset_progress, init_progress
-
-local_weights_path = None
-
+import supervisely as sly
 
 def get_models_list():
-    res = [
+    return [
         {
-            "modelConfig": "configs/_base_/models/vgg11.py",
-            "config": "configs/vgg/vgg11_b32x8_imagenet.py",
-            "weightsUrl": "https://download.openmmlab.com/mmclassification/v0/vgg/vgg11_batch256_imagenet_20210208-4271cd6c.pth",
-            "model": "VGG-11",
-            "params": "132.86",
-            "flops": "7.63",
-            "top1": "68.75",
-            "top5": "88.87"
+            "config": "hrnet18_itermask_3p.py",
+            "weightsFile": "sbd_h18_itermask.pth",
+            "model": "HRNet18 IT-M",
+            "dataset": "SBD",
+            "sbd_NoC_85": "3.39",
+            "sbd_NoC_90": "5.43",
+            "pascalVOC_NoC_85": "2.51",
+            "COCO_MVal_90": "4.39",
+            "params": "38.8 MB"
         },
+        {
+            "config": "hrnet18s_itermask_3p.py",
+            "weightsFile": "coco_lvis_h18s_itermask.pth",
+            "model": "HRNet18s IT-M",
+            "dataset": "COCO + LVIS",
+            "sbd_NoC_85": "4.04",
+            "sbd_NoC_90": "6.48",
+            "pascalVOC_NoC_85": "2.57",
+            "COCO_MVal_90": "3.33",
+            "params": "16.5 MB"
+        },
+        {
+            "config": "hrnet18_itermask_3p.py",
+            "weightsFile": "coco_lvis_h18_itermask.pth",
+            "model": "HRNet18 IT-M",
+            "dataset": "COCO + LVIS",
+            "sbd_NoC_85": "3.80",
+            "sbd_NoC_90": "6.06",
+            "pascalVOC_NoC_85": "2.28",
+            "COCO_MVal_90": "2.98",
+            "params": "38.8 MB"
+        },
+        {
+            "config": "hrnet32_itermask_3p.py",
+            "weightsFile": "coco_lvis_h32_itermask.pth",
+            "model": "HRNet32 IT-M",
+            "dataset": "COCO + LVIS",
+            "sbd_NoC_85": "3.59",
+            "sbd_NoC_90": "5.71",
+            "pascalVOC_NoC_85": "2.57",
+            "COCO_MVal_90": "2.97",
+            "params": "119 MB"
+        }
     ]
-    _validate_models_configs(res)
-    return res
 
 
 def get_table_columns():
     return [
         {"key": "model", "title": "Model", "subtitle": None},
-        {"key": "params", "title": "Params (M)", "subtitle": None},
-        {"key": "flops", "title": "Flops (G)", "subtitle": None},
-        {"key": "top1", "title": "Top-1 (%)", "subtitle": None},
-        {"key": "top5", "title": "Top-5 (%)", "subtitle": None},
+        {"key": "dataset", "title": "Dataset", "subtitle": None},
+        {"key": "params", "title": "Params", "subtitle": None},
+        {"key": "sbd_NoC_85", "title": "SBD NoC 85%", "subtitle": None},
+        {"key": "sbd_NoC_90", "title": "SBD NoC 90%", "subtitle": None},
+        {"key": "pascalVOC_NoC_85", "title": "Pascal VOC NoC 85%", "subtitle": None},
+        {"key": "COCO_MVal_90", "title": "COCO MVal NoC 90%", "subtitle": None},
     ]
 
 
@@ -45,89 +72,53 @@ def get_model_info_by_name(name):
     raise KeyError(f"Model {name} not found")
 
 
-def get_pretrained_weights_by_name(name):
-    return get_model_info_by_name(name)["weightsUrl"]
-
-
-def _validate_models_configs(models):
-    res = []
-    for model in models:
-        model_config_path = os.path.join(g.root_source_dir, model["modelConfig"])
-        train_config_path = os.path.join(g.root_source_dir, model["config"])
-        if not sly.fs.file_exists(model_config_path):
-            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), model_config_path)
-        if not sly.fs.file_exists(train_config_path):
-            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), train_config_path)
-        res.append(model)
-    return res
-
-
 def init(data, state):
     models = get_models_list()
     data["models"] = models
     data["modelColumns"] = get_table_columns()
-    state["selectedModel"] = "ResNet-34"  # "ResNet-50"
-    state["weightsInitialization"] = "imagenet"  # "custom"  # "imagenet" #@TODO: for debug
-    state["collapsed6"] = True
-    state["disabled6"] = True
-    init_progress(6, data)
+    state["selectedModel"] = "HRNet32 IT-M"
+    state["weightsInitialization"] = "pretrained"  # "custom"
+    state["collapsed5"] = True
+    state["disabled5"] = True
 
-    state["weightsPath"] = ""# "/mmclassification/5687_synthetic products v2_003/checkpoints/epoch_10.pth"  #@TODO: for debug
-    data["done6"] = False
+    state["weightsPath"] = ""
+    data["done5"] = False
 
 
 def restart(data, state):
-    data["done6"] = False
-    # state["collapsed6"] = True
-    # state["disabled6"] = True
+    data["done5"] = False
 
 
-@g.my_app.callback("download_weights")
+@g.my_app.callback("select_model")
 @sly.timeit
 @g.my_app.ignore_errors_and_show_dialog_window()
-def download_weights(api: sly.Api, task_id, context, state, app_logger):
-    global local_weights_path
-    try:
-        if state["weightsInitialization"] == "custom":
-            weights_path_remote = state["weightsPath"]
-            if not weights_path_remote.endswith(".pth"):
-                raise ValueError(f"Weights file has unsupported extension {sly.fs.get_file_ext(weights_path_remote)}. "
-                                 f"Supported: '.pth'")
+def select_model(api: sly.Api, task_id, context, state, app_logger):
+    if state["weightsInitialization"] == "custom":
+        weights_path_remote = state["weightsPath"]
+        if not weights_path_remote.endswith(".pth"):
+            raise ValueError(f"Weights file has unsupported extension {sly.fs.get_file_ext(weights_path_remote)}. "
+                             f"Supported: '.pth'")
 
-            # get architecture type from previous UI state
-            prev_state_path_remote = os.path.join(str(Path(weights_path_remote).parents[1]), "info/ui_state.json")
-            prev_state_path = os.path.join(g.my_app.data_dir, "ui_state.json")
-            api.file.download(g.team_id, prev_state_path_remote, prev_state_path)
-            prev_state = sly.json.load_json_file(prev_state_path)
-            api.task.set_field(g.task_id, "state.selectedModel", prev_state["selectedModel"])
+        # get architecture type from previous UI state
+        prev_state_path_remote = os.path.join(str(Path(weights_path_remote).parents[1]), "info/ui_state.json")
+        prev_state_path = os.path.join(g.my_app.data_dir, "ui_state.json")
+        api.file.download(g.team_id, prev_state_path_remote, prev_state_path)
+        prev_state = sly.json.load_json_file(prev_state_path)
+        api.task.set_field(g.task_id, "state.selectedModel", prev_state["selectedModel"])
 
-            local_weights_path = os.path.join(g.my_app.data_dir, sly.fs.get_file_name_with_ext(weights_path_remote))
-            if sly.fs.file_exists(local_weights_path) is False:
-                file_info = g.api.file.get_info_by_path(g.team_id, weights_path_remote)
-                if file_info is None:
-                    raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), weights_path_remote)
-                progress_cb = get_progress_cb(6, "Download weights", file_info.sizeb, is_size=True, min_report_percent=1)
-                g.api.file.download(g.team_id, weights_path_remote, local_weights_path, g.my_app.cache, progress_cb)
-                reset_progress(6)
-        else:
-            weights_url = get_pretrained_weights_by_name(state["selectedModel"])
-            local_weights_path = os.path.join(g.my_app.data_dir, sly.fs.get_file_name_with_ext(weights_url))
-            if sly.fs.file_exists(local_weights_path) is False:
-                response = requests.head(weights_url, allow_redirects=True)
-                sizeb = int(response.headers.get('content-length', 0))
-                progress_cb = get_progress_cb(6, "Download weights", sizeb, is_size=True, min_report_percent=1)
-                sly.fs.download(weights_url, local_weights_path, g.my_app.cache, progress_cb)
-                reset_progress(6)
-        sly.logger.info("Pretrained weights has been successfully downloaded",
-                        extra={"weights": local_weights_path})
-    except Exception as e:
-        reset_progress(6)
-        raise e
+        g.local_weights_path = os.path.join(g.models_source_dir, sly.fs.get_file_name_with_ext(weights_path_remote))
+
+    else:
+        weights_file = None
+        for model in get_models_list():
+            if state["selectedModel"] == model["model"]:
+                weights_file = model["weightsFile"]
+        g.local_weights_path = os.path.join(g.models_source_dir, weights_file)
 
     fields = [
-        {"field": "data.done6", "payload": True},
-        {"field": "state.collapsed7", "payload": False},
-        {"field": "state.disabled7", "payload": False},
-        {"field": "state.activeStep", "payload": 7},
+        {"field": "data.done5", "payload": True},
+        {"field": "state.collapsed6", "payload": False},
+        {"field": "state.disabled6", "payload": False},
+        {"field": "state.activeStep", "payload": 6},
     ]
     g.api.app.set_fields(g.task_id, fields)

@@ -38,14 +38,15 @@ project_id = int(os.environ['modal.state.slyProjectId'])
 project_info = api.project.get_info_by_id(project_id)
 project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
 project_dir = os.path.join(my_app.data_dir, "sly_project")
-project_dir_seg = None
+project_dir_seg = os.path.join(my_app.data_dir, "sly_seg_project")
+project_seg = None
 
 artifacts_dir = os.path.join(my_app.data_dir, "artifacts")
 info_dir = os.path.join(artifacts_dir, "info")
 sly.fs.mkdir(info_dir)
 checkpoints_dir = os.path.join(artifacts_dir, "checkpoints")
 sly.fs.mkdir(checkpoints_dir)
-visualizations_dir = os.path.join(artifacts_dir, "visualizations")
+visualizations_dir = os.path.join(artifacts_dir, "vis")
 sly.fs.mkdir(visualizations_dir)
 
 augs_config_path = os.path.join(info_dir, "augs_config.json")

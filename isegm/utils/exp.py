@@ -12,6 +12,8 @@ from easydict import EasyDict as edict
 from .log import logger, add_logging
 from .distributed import synchronize, get_world_size
 
+import sly_globals as g
+
 
 def init_experiment(args, model_name):
     model_path = Path(args.model_path)
@@ -38,14 +40,17 @@ def init_experiment(args, model_name):
     if cfg.resume_exp:
         exp_path = find_resume_exp(exp_parent_path, cfg.resume_exp)
     else:
+        """
         last_exp_indx = find_last_exp_indx(exp_parent_path)
         exp_name = f'{last_exp_indx:03d}'
         if cfg.exp_name:
             exp_name += '_' + cfg.exp_name
         exp_path = exp_parent_path / exp_name
+        """
+        exp_path = Path(g.artifacts_dir)
         synchronize()
         if cfg.local_rank == 0:
-            exp_path.mkdir(parents=True)
+            exp_path.mkdir(parents=True, exist_ok=True)
 
     cfg.EXP_PATH = exp_path
     cfg.CHECKPOINTS_PATH = exp_path / 'checkpoints'

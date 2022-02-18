@@ -4,7 +4,7 @@ import sly_globals as g
 from supervisely.app.widgets import CompareGallery
 import input_project
 
-
+'''
 _templates = [
     {
         "config": "train/augs/seg_simple.json",
@@ -27,6 +27,8 @@ _templates = [
         "name": "Heavy + flipUD",
     }
 ]
+'''
+_templates = []
 
 _custom_pipeline_path = None
 custom_pipeline = None

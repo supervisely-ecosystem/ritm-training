@@ -23,6 +23,7 @@ def main():
     torch.multiprocessing.set_sharing_strategy('file_system')
 
     model_script.main(cfg)
+    return cfg
 
 
 def parse_args():

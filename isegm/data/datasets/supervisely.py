@@ -3,12 +3,14 @@ from pathlib import Path
 import cv2
 import numpy as np
 import os
+import json
 
 from isegm.utils.misc import get_bbox_from_mask, get_labels_with_sizes
 from isegm.data.base import ISDataset
 from isegm.data.sample import DSample
 
 import sly_globals as g
+import splits
 
 
 class SuperviselyDataset(ISDataset):
@@ -18,30 +20,50 @@ class SuperviselyDataset(ISDataset):
 
         self.dataset_path = Path(dataset_path)
         self.dataset_split = split
-        self._images_path = self.dataset_path / 'ds0' / 'img'
-        self._insts_path = self.dataset_path / 'ds0' / 'seg'
+        self.ds_ind_to_name = {}
+        for ds_ind, dataset in enumerate(g.project_seg.datasets):
+            self.ds_ind_to_name[ds_ind] = dataset.name
+        self._images_path = 'img'
+        self._insts_path = 'seg'
         # self._buggy_objects = dict()
         # self._buggy_mask_thresh = buggy_mask_thresh
         classes_json = g.seg_project_meta.obj_classes.to_json()
         classes_json = [obj for obj in classes_json if obj['title'] != '__bg__']
         self.palette = [obj["color"].lstrip('#') for obj in classes_json]
         self.palette = [[int(color[i:i + 2], 16) for i in (0, 2, 4)] for color in self.palette] # hex to rgb
-        # self.dataset_samples = []
-        with open(os.path.join(g.project_dir_seg, f'{split}.txt'), 'r') as f:
-            self.dataset_samples = [x.strip() for x in f.readlines()]
-        # TODO: do check that num_instances > 0 for each samples
-        """
-        for image_name in samples:
-            inst_mask = cv2.imread(str(self._insts_path / f'{image_name}.png'))
-            if not np.all(np.all(inst_mask == [0, 0, 0], axis=-1)):
-                self.dataset_samples.append(image_name)
-        """
+        self.dataset_samples = self.get_items_by_set_path(os.path.join(g.my_app.data_dir, f'{split}.json'))
+
+    def get_samples_number(self):
+        return sum([len(items) for dataset, items in self.dataset_samples.items()])
+
+    def get_items_by_set_path(self, set_path):
+        files_by_datasets = {}
+        with open(set_path, 'r') as set_file:
+            set_list = json.load(set_file)
+
+            for row in set_list:
+                existing_items = files_by_datasets.get(row['dataset_name'], [])
+                existing_items.append(row['item_name'])
+                files_by_datasets[row['dataset_name']] = existing_items
+
+        return files_by_datasets
+
+    def index_to_ds_and_file(self, index):
+        passed_files = 0
+        for ds_name, items in self.dataset_samples.items():
+            if index >= len(items) + passed_files:
+                passed_files += len(items)
+                continue
+            ind_in_dataset = index - passed_files
+            item_name = self.dataset_samples[ds_name][ind_in_dataset]
+            return ds_name, item_name
 
 
     def get_sample(self, index):
-        image_name = self.dataset_samples[index]
-        image_path = str(self._images_path / image_name)
-        inst_info_path = str(self._insts_path / f'{image_name}.png')
+        dataset_name, image_name = self.index_to_ds_and_file(index)
+
+        image_path = str(self.dataset_path / dataset_name / self._images_path / image_name)
+        inst_info_path = str(self.dataset_path / dataset_name / self._insts_path / f'{image_name}.png')
 
         image = cv2.imread(image_path)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

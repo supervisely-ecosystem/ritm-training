@@ -79,7 +79,7 @@ def train(model, cfg, model_cfg):
 
     # lr_scheduler = partial(torch.optim.lr_scheduler.MultiStepLR,
     #                        milestones=[40, 100, 130], gamma=0.1)
-    num_epochs = 250
+    num_epochs = 10
     lr_scheduler = partial(torch.optim.lr_scheduler.CosineAnnealingLR,
                            T_max=num_epochs, eta_min=5e-7)
 
