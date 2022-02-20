@@ -7,4 +7,7 @@ pretrained_models
 *.ipynb_checkpoints*
 *.yml
 
+.vscode
 supervisely/train/secret_debug.env
+data
+app_cache

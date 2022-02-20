@@ -76,7 +76,7 @@ def init(data, state):
     models = get_models_list()
     data["models"] = models
     data["modelColumns"] = get_table_columns()
-    state["selectedModel"] = "HRNet32 IT-M"
+    state["selectedModel"] = "(COCO) HRNet32 IT-M"
     state["weightsInitialization"] = "pretrained"  # "custom"
     state["collapsed5"] = True
     state["disabled5"] = True

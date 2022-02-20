@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import sys
 import supervisely as sly
+from dotenv import load_dotenv
 
 
 root_source_dir = str(Path(sys.argv[0]).parents[3])
@@ -24,12 +25,18 @@ models_configs_dir = os.path.join(root_source_dir, "configs")
 print(f"Models configs directory: {models_configs_dir}")
 sys.path.append(source_path)
 
+debug_env_path = os.path.join(root_source_dir, "supervisely", "train", "debug.env")
+secret_debug_env_path = os.path.join(root_source_dir, "supervisely", "train", "secret_debug.env")
+# @TODO: for debug
+# load_dotenv(debug_env_path)
+# load_dotenv(secret_debug_env_path, override=True)
+
 my_app = sly.AppService()
 api = my_app.public_api
 task_id = my_app.task_id
 
 # @TODO: for debug
-sly.fs.clean_dir(my_app.data_dir)
+# sly.fs.clean_dir(my_app.data_dir)
 
 team_id = int(os.environ['context.teamId'])
 workspace_id = int(os.environ['context.workspaceId'])
