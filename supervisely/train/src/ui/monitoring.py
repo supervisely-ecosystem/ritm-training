@@ -26,9 +26,13 @@ def init(data, state):
     state["done7"] = False
 
     state["started"] = False
+    state['finishTrain'] = False
+    state["continueTrain"] = False
     state["preparingData"] = False
     data["outputName"] = None
     data["outputUrl"] = None
+
+    state["addEpochs"] = 5
 
 def init_charts(data, state):
     state["smoothing"] = 0.6
@@ -36,10 +40,10 @@ def init_charts(data, state):
     g.sly_charts = {
         'lr': sly.app.widgets.Chart(g.task_id, g.api, "data.chartLR",
                                     title="LR", series_names=["LR"],
-                                    ydecimals=6, xdecimals=2),
+                                    ydecimals=9, xdecimals=2),
         'loss': sly.app.widgets.Chart(g.task_id, g.api, "data.chartLoss",
                                       title="Train Loss", series_names=["train"],
-                                      smoothing=state["smoothing"], ydecimals=6, xdecimals=2),
+                                      smoothing=state["smoothing"], ydecimals=8, xdecimals=2),
         'val_iou': sly.app.widgets.Chart(g.task_id, g.api, "data.chartIoU",
                                         title="Val Adaptive UoI", series_names=["val"],
                                         smoothing=state["smoothing"], ydecimals=6, xdecimals=2)
@@ -65,22 +69,27 @@ def upload_artifacts_and_log_progress():
         else:
             progress.set_current_value(monitor.bytes_read, report=False)
         _update_progress_ui("UploadDir", g.api, g.task_id, progress)
-
+    
     progress = sly.Progress("Upload directory with training artifacts to Team Files", 0, is_size=True)
     progress_cb = partial(upload_monitor, api=g.api, task_id=g.task_id, progress=progress)
 
     remote_dir = f"/RITM_training/{g.task_id}_{g.project_info.name}"
     res_dir = g.api.file.upload_directory(g.team_id, g.artifacts_dir, remote_dir, progress_size_cb=progress_cb)
+    
     return res_dir
 
 
 def init_cfg(state):
-    g.train_cfg["num_epochs"] = state["epochs"]
+    if state["continueTrain"]:
+        g.train_cfg["num_epochs"] += state["addEpochs"]
+    else:
+        g.train_cfg["num_epochs"] = state["epochs"]
     g.train_cfg["input_size"] = (state["input_size"]["value"]["height"], state["input_size"]["value"]["height"])
     g.train_cfg["checkpoint_interval"] = state["checkpointInterval"]
     g.train_cfg["visualization_interval"] = state["visualizationInterval"]
     g.train_cfg["max_num_points"] = state["maxNumPoints"]
     g.train_cfg["optimizer"] = state["optimizer"]
+    g.train_cfg["step_lr_gamma"] = state["stepLrGamma"]
 
     g.train_cfg["optim_params"] = {}
     g.train_cfg["optim_params"]["lr"] = state["lr"]
@@ -103,8 +112,8 @@ def init_cfg(state):
 @sly.timeit
 @g.my_app.ignore_errors_and_show_dialog_window()
 def train(api: sly.Api, task_id, context, state, app_logger):
-    # init_class_charts_series(state)
-    try:
+    
+    if not state["finishTrain"] and not state["continueTrain"]:
         sly.json.dump_json_file(state, os.path.join(g.info_dir, "ui_state.json"))
 
         os.makedirs(g.project_dir_seg, exist_ok=True)
@@ -117,11 +126,26 @@ def train(api: sly.Api, task_id, context, state, app_logger):
         g.project_seg = sly.Project(g.project_dir_seg, sly.OpenMode.READ)
         g.seg_project_meta = g.project_seg.meta
 
-        init_cfg(state)
-        init_script_arguments(state)
-        cfg = train_model()
-        # shutil.copyfile(os.path.join(cfg.CHECKPOINTS_PATH, ""), "")
+    if not state["finishTrain"]:
+        try:
+            init_cfg(state)
+            init_script_arguments(state)
+            train_model()
 
+            fields = [
+                {"field": "state.started", "payload": False},
+                {"field": "state.continueTrain", "payload": True}
+            ]
+            g.api.app.set_fields(g.task_id, fields)
+        except Exception as e:
+            g.api.app.set_field(task_id, "state.started", False)
+            raise e  # app will handle this error and show modal window
+
+        g.my_app.show_modal_window(
+            "Training is finished, app is still running and you can preview predictions dynamics over time."
+            "Please stop app manually once you are finished with it.")
+
+    else:
         fields = [
             {"field": "data.progressEpoch", "payload": None},
             {"field": "data.progressIter", "payload": None},
@@ -140,9 +164,5 @@ def train(api: sly.Api, task_id, context, state, app_logger):
             {"field": "state.started", "payload": False},
         ]
         g.api.app.set_fields(g.task_id, fields)
-    except Exception as e:
-        g.api.app.set_field(task_id, "state.started", False)
-        raise e  # app will handle this error and show modal window
 
-    # stop application
-    g.my_app.stop()
+        g.my_app.stop()

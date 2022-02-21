@@ -28,7 +28,7 @@ def main():
 
 def parse_args():
     parser = argparse.ArgumentParser()
-
+    
     parser.add_argument('model_path', type=str,
                         help='Path to the model script.')
 
@@ -50,9 +50,7 @@ def parse_args():
     parser.add_argument('--gpus', type=str, default='', required=False,
                         help='Ids of used GPUs. You should use either this argument or "--ngpus".')
 
-    parser.add_argument('--resume-exp', type=str, default=None,
-                        help='The prefix of the name of the experiment to be continued. '
-                             'If you use this field, you must specify the "--resume-prefix" argument.')
+    parser.add_argument('--resume-exp', type=str, default=None)
 
     parser.add_argument('--resume-prefix', type=str, default='latest',
                         help='The prefix of the name of the checkpoint to be loaded.')

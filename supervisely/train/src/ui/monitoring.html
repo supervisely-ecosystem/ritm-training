@@ -5,13 +5,38 @@
           :disabled="{disabled: state.disabled7, message: 'Finish previous steps before training the model'}"
           ref="step7"
 >
-    <el-button v-if="!state.done7"
-               type="primary" class="regular"
-               @click="state.started = true; command('train')"
-               :loading="state.started"
-    >
-        <i class="zmdi zmdi-play mr5"></i> Train
-    </el-button>
+    <div v-if="!state.continueTrain && !state.finishTrain">
+        <el-button v-if="!state.done7"
+                type="primary" class="regular"
+                @click="state.started = true; command('train')"
+                :loading="state.started"
+        >
+            <i class="zmdi zmdi-play mr5"></i> Train
+        </el-button>
+    </div>
+    <div v-if="!state.finishTrain && state.continueTrain">
+        <el-button
+                type="primary" 
+                class="regular"
+                :loading="state.started"
+                @click="state.started = true; command('train')"
+        >
+            <i class="zmdi zmdi-play mr5"></i>
+            Continue Training
+        </el-button>
+        <el-input-number class=ml5 v-model="state.addEpochs" :min="1" :max="10000" :disabled="state.started"></el-input-number>
+        <span>additional epochs.</span>
+    </div>
+    <div class=mt10 v-if="!state.finishTrain && !state.started && state.continueTrain">
+        <el-button
+                type="danger" 
+                class="regular"
+                @click="state.finishTrain = true; command('train')"
+
+        >
+            Finish Training
+        </el-button>
+    </div>
     <div v-if="data.outputUrl">
         <sly-field title="Training artifacts"
                    description="Training artifacts has been uploaded to Team Files">
@@ -48,7 +73,7 @@
         <el-progress :percentage="data.progressPercentIter"></el-progress>
     </div>
 
-    <div class="mt15" v-if="state.started || data.outputUrl">
+    <div class="mt15" v-if="state.started || state.continueTrain || data.outputUrl">
         <sly-field title="" description="" style="align-items: center">
             <sly-icon slot="icon" :options="{ color: '#006ad4', bgColor: '#e0f2ff', rounded: false }">
                 <i class="zmdi zmdi-trending-up"></i>

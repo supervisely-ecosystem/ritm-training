@@ -29,6 +29,7 @@ def init_general(state):
 
 def init_optimizer(state):
     state["optimizer"] = "adam"
+    state["stepLrGamma"] = 0.5
     state["lr"] = 1e-4
     state["beta1"] = 0.9
     state["beta2"] = 0.999

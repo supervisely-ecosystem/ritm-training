@@ -62,11 +62,7 @@ def train(model, cfg, model_cfg):
 
     optimizer_params = g.train_cfg["optim_params"]
 
-    # lr_scheduler = partial(torch.optim.lr_scheduler.MultiStepLR,
-    #                        milestones=[40, 100, 130], gamma=0.1)
-
-    lr_scheduler = partial(torch.optim.lr_scheduler.CosineAnnealingLR,
-                           T_max=g.train_cfg["num_epochs"], eta_min=1e-7)
+    lr_scheduler = partial(torch.optim.lr_scheduler.StepLR, gamma=g.train_cfg["step_lr_gamma"], step_size=1)
 
     trainer = ISTrainer(model, cfg, model_cfg, loss_cfg,
                         trainset, valset,

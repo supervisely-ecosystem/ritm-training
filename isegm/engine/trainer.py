@@ -91,7 +91,14 @@ class ISTrainer(object):
         )
 
         self.optim = get_optimizer(model, optimizer, optimizer_params)
-        model = self._load_weights(model)
+        
+        if self.cfg.resume_exp is not None:
+            path_to_weights = os.path.join(self.cfg.CHECKPOINTS_PATH, "last_checkpoint.pth")
+            model, self.optim, start_epoch = load_model_and_optim_weights(model, self.optim, path_to_weights)
+            self.cfg.start_epoch = start_epoch
+        else:
+            model = self._load_weights(model)
+        
 
         if cfg.multi_gpu:
             model = get_dp_wrapper(cfg.distributed)(model, device_ids=cfg.gpu_ids,
@@ -189,7 +196,7 @@ class ISTrainer(object):
                         v.log_states(self.sw, f'{log_prefix}Losses/{k}', global_step)
 
                 lr_val = self.lr if not hasattr(self, 'lr_scheduler') else self.lr_scheduler.get_lr()[-1]
-                g.sly_charts['lr'].append(x=round(global_step / len(tbar), 2), y=round(lr_val, 7),
+                g.sly_charts['lr'].append(x=round(global_step / len(tbar), 2), y=round(lr_val, 9),
                                               series_name='LR')
                 self.sw.add_scalar(tag=f'{log_prefix}States/learning_rate',
                                    value=round(lr_val, 7),
@@ -208,8 +215,8 @@ class ISTrainer(object):
                                    value=metric.get_epoch_value(),
                                    global_step=epoch + 1, disable_avg=True)
 
-            save_checkpoint(self.net, self.cfg.CHECKPOINTS_PATH, prefix=self.task_prefix,
-                            epoch=None, multi_gpu=self.cfg.multi_gpu, verbose=False)
+            save_checkpoint(self.net, self.cfg.CHECKPOINTS_PATH, prefix=self.task_prefix, last=True,
+                            epoch=epoch + 1, multi_gpu=self.cfg.multi_gpu, verbose=False, optimizer=self.optim)
 
             if isinstance(self.checkpoint_interval, (list, tuple)):
                 checkpoint_interval = [x for x in self.checkpoint_interval if x[0] <= epoch][-1][1]
@@ -450,3 +457,11 @@ def load_weights(model, path_to_weights):
     new_state_dict = torch.load(path_to_weights, map_location='cpu')['state_dict']
     current_state_dict.update(new_state_dict)
     model.load_state_dict(current_state_dict)
+
+
+def load_model_and_optim_weights(model, optim, path_to_weights):
+    checkpoint = torch.load(path_to_weights, map_location='cpu')
+    model.load_state_dict(checkpoint['state_dict'])
+    optim.load_state_dict(checkpoint['optim_state_dict'])
+    epoch = checkpoint['epoch']
+    return model, optim, epoch
