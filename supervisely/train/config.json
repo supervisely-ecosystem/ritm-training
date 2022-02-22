@@ -13,7 +13,7 @@
   "main_script": "supervisely/train/src/main.py",
   "gui_template": "supervisely/train/src/gui.html",
   "task_location": "workspace_tasks",
-  "icon": "",
+  "icon": "https://i.imgur.com/UwsMZ6X.png",
   "context_menu": {
     "target": ["images_project"],
     "context_root": "Neural Networks",
