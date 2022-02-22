@@ -24,6 +24,7 @@ def init(data, state):
     state["collapsed7"] = True
     state["disabled7"] = True
     state["done7"] = False
+    state["preparingData"] = False
 
     state["started"] = False
     state['finishTrain'] = False
@@ -114,6 +115,7 @@ def init_cfg(state):
 def train(api: sly.Api, task_id, context, state, app_logger):
     
     if not state["finishTrain"] and not state["continueTrain"]:
+        g.api.app.set_field(task_id, "state.preparingData", True)
         sly.json.dump_json_file(state, os.path.join(g.info_dir, "ui_state.json"))
 
         os.makedirs(g.project_dir_seg, exist_ok=True)
@@ -125,6 +127,7 @@ def train(api: sly.Api, task_id, context, state, app_logger):
         shutil.rmtree(g.project_dir)
         g.project_seg = sly.Project(g.project_dir_seg, sly.OpenMode.READ)
         g.seg_project_meta = g.project_seg.meta
+        g.api.app.set_field(task_id, "state.preparingData", False)
 
     if not state["finishTrain"]:
         try:

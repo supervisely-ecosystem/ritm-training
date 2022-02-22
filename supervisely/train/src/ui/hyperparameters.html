@@ -5,7 +5,7 @@
           ref="step6"
 >
     <el-tabs type="border-card" class="el-tabs-cards" v-model="state.currentTab">
-        <el-tab-pane label="General" name="general" :disabled="data.done6">
+        <el-tab-pane label="General" name="general">
             <sly-field title="Device"
                        description="Run nvidia-smi or check agent page to see how many devices your machine has or keep by default">
                 <el-select v-model="state.gpusId" :disabled="true">
@@ -58,7 +58,7 @@
             </sly-field>
         </el-tab-pane>
 
-        <el-tab-pane label="(Advanced) Optimizer" name="optimizer" :disabled="data.done6">
+        <el-tab-pane label="(Advanced) Optimizer" name="optimizer">
             <sly-field title="Optimizer">
                 <div slot="description">
                     Choose optimizer and its settings, learn more in official
@@ -98,7 +98,7 @@
                 <el-switch v-model="state.amsgrad" on-color="#13ce66" off-color="#B8B8B8" :disabled="data.done6"></el-switch>
             </sly-field>
         </el-tab-pane>
-        <el-tab-pane label="(Advanced) Loss" name="loss" :disabled="data.done6">
+        <el-tab-pane label="(Advanced) Loss" name="loss">
             <sly-field title="Instance loss function">
                 <el-select class=mt10 v-model="state.instanceLoss" :disabled="data.done6">
                     <el-option v-for="loss in data.availableLosses" :key="loss" :label="loss" :value="loss"></el-option>

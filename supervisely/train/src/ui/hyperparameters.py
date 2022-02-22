@@ -23,7 +23,7 @@ def init_general(state):
     }
     state["batchSizePerGPU"] = 2
     state["workersPerGPU"] = 1
-    state["checkpointInterval"] = 10
+    state["checkpointInterval"] = 5
     state["visualizationInterval"] = 1
     state["maxNumPoints"] = 12
 
