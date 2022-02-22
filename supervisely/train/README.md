@@ -1,6 +1,6 @@
 <div align="center" markdown> 
 
-<img src="https://i.imgur.com/YaSaWQb.png"/>
+<img src="https://i.imgur.com/3U7GZmf.png"/>
 
 # Train RITM
   
@@ -8,8 +8,10 @@
 
   <a href="#Overview">Overview</a> •
   <a href="#How-To-Run">How To Run</a> •
+  <a href="#Related-Apps">How To Run</a> •
   <a href="#Video">Video</a> •
-  <a href="#Screenshot">Screenshot</a>
+  <a href="#Screenshot">Screenshot</a> •
+  <a href="#Acknowledgment">Acknowledgment</a>
 </p>
 
 [![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervise.ly/slack) 
@@ -35,6 +37,20 @@ Available 4 pretrained checkpoints based on HRNet for interactive click-based se
 
 <img src="https://i.imgur.com/q9fHzV7.png" />
 
+
+## Related Apps
+
+You can use served model in next Supervisely Applications ⬇️ 
+  
+
+- [RITM interactive segmentation SmartTool](https://ecosystem.supervise.ly/apps/supervisely-ecosystem%2Fritm-interactive-segmentation%2Fsupervisely) - app allows to apply your trained model to your data in real time interactively. Just run app and specify path to your custom model, open your data project and enjoy fast labeling!
+   
+    <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/nn-image-labeling/project-dataset" src="https://i.imgur.com/Mm2Auxx.png" width="350px"/> 
+
+- [Flying Objects](https://ecosystem.supervise.ly/apps/flying-objects) - app allows to generate synthetic data for training RITM model. Configure background images and labeled segments and you'll get a mix. Flexible app setting allow train strong models even on an extremely small labeled data.
+   
+    <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/nn-image-labeling/annotation-tool" src="https://img.icons8.com/color/100/000000/snitch.png" width="350px"/>
+
 ## Video
 
 In progress. Will be available soon.
@@ -42,3 +58,7 @@ In progress. Will be available soon.
 ## Screenshot
 
 <img src="https://i.imgur.com/WMaoGyi.png"/>
+
+## Acknowledgment
+
+This app is based on the great work `RITM` ([github](https://github.com/facebookresearch/detectron2)). ![GitHub Org's stars](https://img.shields.io/github/stars/facebookresearch/detectron2?style=social)
