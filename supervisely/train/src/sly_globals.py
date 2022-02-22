@@ -52,7 +52,7 @@ artifacts_dir = os.path.join(my_app.data_dir, "artifacts")
 info_dir = os.path.join(artifacts_dir, "info")
 sly.fs.mkdir(info_dir)
 checkpoints_dir = os.path.join(artifacts_dir, "checkpoints")
-sly.fs.mkdir(checkpoints_dir)
+# sly.fs.mkdir(checkpoints_dir)
 visualizations_dir = os.path.join(artifacts_dir, "vis")
 sly.fs.mkdir(visualizations_dir)
 

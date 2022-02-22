@@ -128,6 +128,15 @@
         </el-tab-pane>
     </el-tabs>
 
+    <sly-field title="INFO: Missed labels"
+			   description="Images without any mask labels will be skipped automatically."
+			   style="padding-top: 0; padding-bottom: 0; margin: 10px 5px;">
+
+		<sly-icon slot="icon" :options="{ color: '#13ce66', bgColor: '#e1f7eb', rounded: false }">
+			<i class="zmdi zmdi-info"></i>
+		</sly-icon>
+	</sly-field>
+
     <el-button
             type="primary"
             class="mt10 regular"

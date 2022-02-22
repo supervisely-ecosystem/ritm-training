@@ -2,6 +2,7 @@ from isegm.utils.exp_imports.default import *
 import sly_globals as g
 import supervisely as sly
 import augs
+import imgaug.augmenters as iaa
 
 MODEL_NAME = 'hrnet18'
 
@@ -36,13 +37,27 @@ def train(model, cfg, model_cfg):
     loss_cfg.instance_aux_loss = g.train_cfg["instance_aux_loss"]()
     loss_cfg.instance_aux_loss_weight = g.train_cfg["instance_aux_loss_weight"]
 
-    augs_config = sly.json.load_json_file(augs.augs_config_path)
-    train_augs = sly.imgaug_utils.build_pipeline(augs_config["pipeline"], random_order=augs_config["random_order"])
-
+    if augs.augs_config_path is not None:
+        augs_config = sly.json.load_json_file(augs.augs_config_path)
+        train_augs = sly.imgaug_utils.build_pipeline(augs_config["pipeline"], random_order=augs_config["random_order"])
+        train_augs.append(iaa.PadToFixedSize(width=g.train_cfg["input_size"][1], height=g.train_cfg["input_size"][0]))
+        train_augs.append(iaa.CropToFixedSize(width=g.train_cfg["input_size"][1], height=g.train_cfg["input_size"][0]))
+    else:
+        iaa.Sequential()
+        train_augs = iaa.Sequential([
+            iaa.PadToFixedSize(width=g.train_cfg["input_size"][1], height=g.train_cfg["input_size"][0]),
+            iaa.CropToFixedSize(width=g.train_cfg["input_size"][1], height=g.train_cfg["input_size"][0])
+        ], random_order=False)
+    val_augs = iaa.Sequential([
+            iaa.PadToFixedSize(width=g.train_cfg["input_size"][1], height=g.train_cfg["input_size"][0]),
+            iaa.CropToFixedSize(width=g.train_cfg["input_size"][1], height=g.train_cfg["input_size"][0])
+    ], random_order=False)
+    
     points_sampler = MultiPointSampler(model_cfg.num_max_points, prob_gamma=0.80,
                                        merge_objects_prob=0.15,
                                        max_num_merged_objects=2)
 
+    
     trainset = SuperviselyDataset(
         g.project_dir_seg,
         split='train',
@@ -55,7 +70,7 @@ def train(model, cfg, model_cfg):
     valset = SuperviselyDataset(
         g.project_dir_seg,
         split='val',
-        augmentator=None,
+        augmentator=val_augs,
         min_object_area=10,
         points_sampler=points_sampler
     )

@@ -26,6 +26,7 @@ def init_experiment(args, model_name):
     cfg = load_config(model_path)
     update_config(cfg, args)
 
+    cfg.seed = 0
     cfg.distributed = args.distributed
     cfg.local_rank = args.local_rank
     if cfg.distributed:

@@ -9,8 +9,8 @@ def init_general(state):
 
     state["input_size"] = {
         "value": {
-            "width": 460,
-            "height": 460,
+            "width": 512,
+            "height": 512,
             "proportional": True
         },
         "options": {
@@ -21,15 +21,15 @@ def init_general(state):
             "min": 64
         }
     }
-    state["batchSizePerGPU"] = 4
-    state["workersPerGPU"] = 2
+    state["batchSizePerGPU"] = 2
+    state["workersPerGPU"] = 1
     state["checkpointInterval"] = 10
     state["visualizationInterval"] = 1
     state["maxNumPoints"] = 12
 
 def init_optimizer(state):
     state["optimizer"] = "adam"
-    state["stepLrGamma"] = 0.5
+    state["stepLrGamma"] = 0.95
     state["lr"] = 1e-4
     state["beta1"] = 0.9
     state["beta2"] = 0.999

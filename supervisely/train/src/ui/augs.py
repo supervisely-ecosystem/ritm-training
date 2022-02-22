@@ -78,7 +78,7 @@ def init(data, state):
     templates_info, name_to_py = get_aug_templates_list()
     data["augTemplates"] = templates_info
     data["augPythonCode"] = name_to_py
-    state["augsTemplateName"] = templates_info[0]["name"]
+    state["augsTemplateName"] = templates_info[-1]["name"]
 
     data["pyViewOptions"] = {
         "mode": 'ace/mode/python',

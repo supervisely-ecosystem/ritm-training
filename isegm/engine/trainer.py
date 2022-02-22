@@ -76,18 +76,29 @@ class ISTrainer(object):
         logger.info(f'Dataset of {trainset.get_samples_number()} samples was loaded for training.')
         logger.info(f'Dataset of {valset.get_samples_number()} samples was loaded for validation.')
 
+        def worker_init_fn(worker_id):
+            np.random.seed(cfg.seed + worker_id)
+            random.seed(cfg.seed + worker_id)
+            torch.manual_seed(cfg.seed + worker_id)
+
         self.train_data = DataLoader(
             trainset, cfg.batch_size,
             sampler=get_sampler(trainset, shuffle=True, distributed=cfg.distributed),
             drop_last=True, pin_memory=True,
-            num_workers=cfg.workers
+            num_workers=cfg.workers,
+            worker_init_fn=worker_init_fn,
+            persistent_workers=True,
+            prefetch_factor=1
         )
 
         self.val_data = DataLoader(
             valset, cfg.val_batch_size,
             sampler=get_sampler(valset, shuffle=False, distributed=cfg.distributed),
             drop_last=True, pin_memory=True,
-            num_workers=cfg.workers
+            num_workers=cfg.workers,
+            worker_init_fn=worker_init_fn,
+            persistent_workers=True,
+            prefetch_factor=1
         )
 
         self.optim = get_optimizer(model, optimizer, optimizer_params)
