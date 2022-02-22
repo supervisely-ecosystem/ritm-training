@@ -57,7 +57,7 @@ In progress. Will be available soon.
 
 ## Screenshot
 
-<img src="https://i.imgur.com/WMaoGyi.png"/>
+<img src="https://i.imgur.com/oZb4C6G.png"/>
 
 ## Acknowledgment
 
