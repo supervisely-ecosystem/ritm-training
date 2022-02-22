@@ -33,7 +33,7 @@ Available 4 pretrained checkpoints based on HRNet for interactive click-based se
 2. Be sure that you connected computer with GPU to your team by running Supervisely Agent on it
 3. Run app from context menu of images project
 
-<img src="https://i.imgur.com/31rdu2F.png" />
+<img src="https://i.imgur.com/q9fHzV7.png" />
 
 ## Video
 
