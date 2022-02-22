@@ -1,5 +1,5 @@
 {
-  "name": "RITM training",
+  "name": "Train RITM",
   "type": "app",
   "restart_policy": "on_error",
   "categories": [
