@@ -9,6 +9,7 @@ from train import main as train_model
 from sly_train_args import init_script_arguments
 # it is needed to use losses
 from isegm.model.losses import *
+import torch
 
 _open_lnk_name = "open_app.lnk"
 
@@ -134,6 +135,7 @@ def train(api: sly.Api, task_id, context, state, app_logger):
             init_cfg(state)
             init_script_arguments(state)
             train_model()
+            torch.cuda.empty_cache()
 
             fields = [
                 {"field": "state.started", "payload": False},

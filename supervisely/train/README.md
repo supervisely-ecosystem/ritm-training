@@ -35,6 +35,7 @@ Available 4 pretrained checkpoints based on HRNet for interactive click-based se
 1. Add app to your team from Ecosystem
 2. Be sure that you connected computer with GPU to your team by running Supervisely Agent on it
 3. Run app from context menu of images project
+4. Push "Finish training" button when training will be completed if you don't want to continue training.
 
 <img src="https://i.imgur.com/q9fHzV7.png" />
 
