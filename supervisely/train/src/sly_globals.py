@@ -46,7 +46,8 @@ project_info = api.project.get_info_by_id(project_id)
 project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
 project_dir = os.path.join(my_app.data_dir, "sly_project")
 project_dir_seg = os.path.join(my_app.data_dir, "sly_seg_project")
-project_seg = None
+project_fs: sly.Project = None
+project_seg: sly.Project = None
 
 artifacts_dir = os.path.join(my_app.data_dir, "artifacts")
 info_dir = os.path.join(artifacts_dir, "info")

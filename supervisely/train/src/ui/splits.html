@@ -2,14 +2,14 @@
           subtitle="Define how to split your data to train/val subsets. Number of images in splits is approximate.
                     Preview final data statistics in next sections"
           :options="{collapsable: true}"
-          :collapsed.sync="state.collapsed2"
-          :disabled="{disabled: state.disabled2, message: 'Download data at step 1 before choosing train/val splits'}"
-          ref="step2"
+          :collapsed.sync="state.collapsed3"
+          :disabled="{disabled: state.disabled3, message: 'Download data at step 1 before choosing train/val splits'}"
+          ref="step3"
 >
     <!--    v-model="state.splitMethod"-->
     <el-tabs type="border-card" class="el-tabs-cards" v-model="state.splitMethod">
-        <el-tab-pane name="random" :disabled="data.done2">
-            <el-radio slot="label" v-model="state.splitMethod" label="random" :disabled="data.done2">
+        <el-tab-pane name="random" :disabled="data.done3">
+            <el-radio slot="label" v-model="state.splitMethod" label="random" :disabled="data.done3">
                 Random
                 <div>Shuffle data and split with defined probability</div>
             </el-radio>
@@ -33,7 +33,7 @@
                         </div>
                         <el-slider v-if="scope.row.name === 'train'"
                                    v-model="state.randomSplit.percent.train"
-                                   :disabled="state.randomSplit.sliderDisabled || data.done2"
+                                   :disabled="state.randomSplit.sliderDisabled || data.done3"
                                    show-input :min="1" :max="99"
                                    style="flex:1; max-width: 99%; margin-left: 15px;"
                                    @input="
@@ -48,8 +48,8 @@
                 </el-table-column>
             </el-table>
         </el-tab-pane>
-        <el-tab-pane name="tags" :disabled="data.done2">
-            <el-radio slot="label" v-model="state.splitMethod" label="tags" :disabled="data.done2">
+        <el-tab-pane name="tags" :disabled="data.done3">
+            <el-radio slot="label" v-model="state.splitMethod" label="tags" :disabled="data.done3">
                 Based on image tags
                 <div>Images should have assigned train or val tag</div>
             </el-radio>
@@ -70,7 +70,7 @@
             </sly-field>
             <sly-field title="Train tag" description="all images with this tag are considered as training set">
                 <sly-select-tag
-                        :disabled="data.done2"
+                        :disabled="data.done3"
                         :project-id="data.projectId"
                         :tags.sync="state.trainTagName"
                         :options="{'showLabel': false}">
@@ -79,7 +79,7 @@
             <sly-field title="Validation tag"
                        description="all images with this tag are considered as validation set">
                 <sly-select-tag
-                        :disabled="data.done2"
+                        :disabled="data.done3"
                         :project-id="data.projectId"
                         :tags.sync="state.valTagName"
                         :options="{'showLabel': false}">
@@ -87,7 +87,7 @@
             </sly-field>
             <sly-field title="Images without selected tags"
                        description="Choose what to do with untagged images">
-                <el-select v-model="state.untaggedImages" :disabled="data.done2" placeholder="Select"
+                <el-select v-model="state.untaggedImages" :disabled="data.done3" placeholder="Select"
                            style="width: 280px;">
                     <el-option key="ignore" label="ignore untagged images" value="ignore"></el-option>
                     <el-option key="train" label="add untagged images to train set" value="train"></el-option>
@@ -95,8 +95,8 @@
                 </el-select>
             </sly-field>
         </el-tab-pane>
-        <el-tab-pane name="datasets" :disabled="data.done2">
-            <el-radio slot="label" v-model="state.splitMethod" label="datasets" :disabled="data.done2">
+        <el-tab-pane name="datasets" :disabled="data.done3">
+            <el-radio slot="label" v-model="state.splitMethod" label="datasets" :disabled="data.done3">
                 Based on datasets
                 <div>Select one or several datasets for every split</div>
             </el-radio>
@@ -110,7 +110,7 @@
             <sly-field title="Train dataset(s)"
                        description="all images in selected dataset(s) are considered as training set">
                 <sly-select-dataset
-                        :disabled="data.done2"
+                        :disabled="data.done3"
                         :project-id="data.projectId"
                         :datasets.sync="state.trainDatasets"
                         :options="{'multiple': true, 'showLabel': false}">
@@ -119,7 +119,7 @@
             <sly-field title="Validation dataset(s)"
                        description="all images in selected dataset(s) are considered as validation set">
                 <sly-select-dataset
-                        :disabled="data.done2"
+                        :disabled="data.done3"
                         :project-id="data.projectId"
                         :datasets.sync="state.valDatasets"
                         :options="{'multiple': true, 'showLabel': false}">
@@ -141,22 +141,22 @@
             type="primary"
             class="mt10 regular"
             :loading="state.splitInProgress"
-            v-if="!data.done2"
+            v-if="!data.done3"
             @click="command('create_splits')">
         Create
     </el-button>
 
-    <div v-if="data.done2 && !state.splitInProgress" class="mt10">
+    <div v-if="data.done3 && !state.splitInProgress" class="mt10">
         <div>
             <i class="zmdi zmdi-check-circle mr5" style="color: #13ce66"></i>
             <span style="color: #5a6772;">
-                Splits have been successfully created: {{state.trainImagesCount}}/{{state.fullTrainImagesCount}} images in train ({{state.fullTrainImagesCount - state.trainImagesCount}} skipped because of no labels),
-                {{state.valImagesCount}}/{{state.fullValImagesCount}} images in val ({{state.fullValImagesCount - state.valImagesCount}} skipped because of no labels)
+                Splits have been successfully created: {{state.trainImagesCount}} images in train,
+                {{state.valImagesCount}} images in val
             </span>
         </div>
         <el-button type="warning" class="regular mt10" :plain="true"
-                   @click="state.restartFrom = 2;"
-                   v-if="data.done2 && !state.started">
+                   @click="state.restartFrom = 3;"
+                   v-if="data.done3 && !state.started">
             <i class="zmdi zmdi-rotate-left mr5"></i> Recreate splits
         </el-button>
     </div>
