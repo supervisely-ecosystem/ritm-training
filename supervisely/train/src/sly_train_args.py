@@ -1,5 +1,4 @@
 import sys
-import os
 import sly_globals as g
 
 

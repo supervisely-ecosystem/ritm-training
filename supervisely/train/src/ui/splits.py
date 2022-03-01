@@ -2,8 +2,9 @@ import supervisely as sly
 import sly_globals as g
 import os
 import random
-from input_project import get_image_info_from_cache
+from collections import namedtuple
 
+ItemInfo = namedtuple('ItemInfo', ['dataset_name', 'name', 'img_path', 'ann_path'])
 train_set = None
 val_set = None
 
@@ -22,6 +23,11 @@ def init(project_info, project_meta: sly.ProjectMeta, data, state):
 
     train_percent = 80
     train_count = int(project_info.items_count / 100 * train_percent)
+    # RITM model requires to contain minimum 2 samples in batch
+    if train_count < 2:
+        train_count = 2
+    elif project_info.items_count - train_count < 2:
+        train_count = project_info.items_count - 2
     state["randomSplit"] = {
         "count": {
             "total": project_info.items_count,
@@ -63,6 +69,11 @@ def refresh_table():
     total_items_count = g.project_fs.total_items - ignored_items_count
     train_percent = 80
     train_count = int(total_items_count / 100 * train_percent)
+    # RITM model requires to contain minimum 2 samples in batch
+    if train_count < 2:
+        train_count = 2
+    elif g.project_info.items_count - train_count < 2:
+        train_count = g.project_info.items_count - 2
     random_split_tab = {
         "count": {
             "total": total_items_count,
@@ -85,6 +96,7 @@ def refresh_table():
     g.api.app.set_fields(g.task_id, fields)
 
 
+
 def get_train_val_splits_by_count(train_count, val_count):
     global items_to_ignore
     ignored_count = sum([len(ds_items) for ds_items in items_to_ignore.values()])
@@ -96,7 +108,7 @@ def get_train_val_splits_by_count(train_count, val_count):
         for item_name in dataset:
             if item_name in items_to_ignore[dataset.name]:
                 continue
-            all_items.append(sly.ItemInfo(dataset_name=dataset.name,
+            all_items.append(ItemInfo(dataset_name=dataset.name,
                                 name=item_name,
                                 img_path=dataset.get_img_path(item_name),
                                 ann_path=dataset.get_ann_path(item_name)))
@@ -119,7 +131,7 @@ def get_train_val_splits_by_tag(train_tag_name, val_tag_name, untagged="ignore")
             if item_name in items_to_ignore[dataset.name]:
                 continue
             img_path, ann_path = dataset.get_item_paths(item_name)
-            info = sly.ItemInfo(dataset.name, item_name, img_path, ann_path)
+            info = ItemInfo(dataset.name, item_name, img_path, ann_path)
 
             ann = sly.Annotation.load_json_file(ann_path, g.project_meta)
             if ann.img_tags.get(train_tag_name) is not None:
@@ -147,7 +159,7 @@ def get_train_val_splits_by_dataset(train_datasets, val_datasets):
                 if item_name in items_to_ignore[dataset.name]:
                     continue
                 img_path, ann_path = dataset.get_item_paths(item_name)
-                info = sly.ItemInfo(dataset.name, item_name, img_path, ann_path)
+                info = ItemInfo(dataset.name, item_name, img_path, ann_path)
                 items_list.append(info)
 
     train_items = []
@@ -183,8 +195,12 @@ def get_train_val_sets(state):
 def verify_train_val_sets(train_set, val_set):
     if len(train_set) == 0:
         raise ValueError("Train set is empty, check or change split configuration")
+    elif len(train_set) < 2:
+        raise ValueError("Train set is not big enough, min size is 2.")
     if len(val_set) == 0:
         raise ValueError("Val set is empty, check or change split configuration")
+    elif len(val_set) < 2:
+        raise ValueError("Val set is not big enough, min size is 2.")
 
 
 @g.my_app.callback("create_splits")
