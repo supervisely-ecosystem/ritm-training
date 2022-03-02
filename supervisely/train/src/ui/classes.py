@@ -36,7 +36,10 @@ def init(api: sly.Api, data, state, project_id, project_meta: sly.ProjectMeta):
     state["selectedClasses"] = []
     state["classes"] = len(semantic_classes_json) * [True]
     data["unlabeledCount"] = unlabeled_count
+    state["ignoredItems"] = 0
+    state["totalItems"] = g.project_info.items_count
 
+    state["findingItemsToIgnore"] = False
     data["done2"] = False
     state["collapsed2"] = True
     state["disabled2"] = True
@@ -59,6 +62,8 @@ def get_items_to_ignore(selected_classes):
 @g.my_app.ignore_errors_and_show_dialog_window()
 def use_classes(api: sly.Api, task_id, context, state, app_logger):
     sly.logger.info(f"Project data: {g.project_fs.total_items} images")
+    g.api.app.set_field(g.task_id, "state.findingItemsToIgnore", True)
+    
     splits.items_to_ignore = get_items_to_ignore(state["selectedClasses"])
     ignored_items_count = sum([len(ds_items) for ds_items in splits.items_to_ignore.values()])
     
@@ -69,6 +74,8 @@ def use_classes(api: sly.Api, task_id, context, state, app_logger):
 
     fields = [
         {"field": "state.selectedClasses", "payload": state["selectedClasses"]},
+        {"field": "state.ignoredItems", "payload": ignored_items_count},
+        {"field": "state.findingItemsToIgnore", "payload": False},
         {"field": "data.done2", "payload": True},
         {"field": "state.collapsed3", "payload": False},
         {"field": "state.disabled3", "payload": False},

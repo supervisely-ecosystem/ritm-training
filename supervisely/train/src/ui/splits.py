@@ -55,6 +55,9 @@ def init(project_info, project_meta: sly.ProjectMeta, data, state):
     state["trainDatasets"] = []
     state["valDatasets"] = []
     state["untaggedImages"] = "train"
+    state["doubleTaggedImages"] = "train"
+    state["ignoredUntaggedImages"] = 0
+    state["ignoredDoubleTaggedImages"] = 0
     state["splitInProgress"] = False
     state["trainImagesCount"] = None
     state["valImagesCount"] = None
@@ -118,14 +121,19 @@ def get_train_val_splits_by_count(train_count, val_count):
     return train_items, val_items
 
 
-def get_train_val_splits_by_tag(train_tag_name, val_tag_name, untagged="ignore"):
+def get_train_val_splits_by_tag(train_tag_name, val_tag_name, untagged="ignore", double_tagged="ignore"):
     global items_to_ignore
     untagged_actions = ["ignore", "train", "val"]
+    double_tagged_actions = ["ignore", "train", "val"]
     if untagged not in untagged_actions:
         raise ValueError(f"Unknown untagged action {untagged}. Should be one of {untagged_actions}")
+    if double_tagged not in double_tagged_actions:
+        raise ValueError(f"Unknown double tagged action {double_tagged}. Should be one of {double_tagged_actions}")
 
     train_items = []
     val_items = []
+    ignored_untagged_cnt = 0
+    ignored_double_tagged_cnt = 0
     for dataset in g.project_fs.datasets:
         for item_name in dataset:
             if item_name in items_to_ignore[dataset.name]:
@@ -134,19 +142,29 @@ def get_train_val_splits_by_tag(train_tag_name, val_tag_name, untagged="ignore")
             info = ItemInfo(dataset.name, item_name, img_path, ann_path)
 
             ann = sly.Annotation.load_json_file(ann_path, g.project_meta)
-            if ann.img_tags.get(train_tag_name) is not None:
+            if ann.img_tags.get(train_tag_name) is not None and ann.img_tags.get(val_tag_name) is not None:
+                # multiple tagged item
+                if double_tagged == "ignore":
+                    ignored_double_tagged_cnt += 1
+                    continue
+                elif double_tagged == "train":
+                    train_items.append(info)
+                elif double_tagged == "val":
+                    val_items.append(info)
+            elif ann.img_tags.get(train_tag_name) is not None:
                 train_items.append(info)
-            if ann.img_tags.get(val_tag_name) is not None:
+            elif ann.img_tags.get(val_tag_name) is not None:
                 val_items.append(info)
-            if ann.img_tags.get(train_tag_name) is None and ann.img_tags.get(val_tag_name) is None:
+            else:
                 # untagged item
                 if untagged == "ignore":
+                    ignored_untagged_cnt += 1
                     continue
                 elif untagged == "train":
                     train_items.append(info)
                 elif untagged == "val":
                     val_items.append(info)
-    return train_items, val_items
+    return train_items, val_items, ignored_untagged_cnt, ignored_double_tagged_cnt
 
 def get_train_val_splits_by_dataset(train_datasets, val_datasets):
     def _add_items_to_list(datasets_names, items_list):
@@ -180,9 +198,10 @@ def get_train_val_sets(state):
         train_tag_name = state["trainTagName"]
         val_tag_name = state["valTagName"]
         add_untagged_to = state["untaggedImages"]
-        train_set, val_set = get_train_val_splits_by_tag(train_tag_name, val_tag_name,
-                                                                     add_untagged_to)
-        return train_set, val_set
+        add_double_tagged_to = state["doubleTaggedImages"]
+        train_set, val_set, ignored_untagged_cnt, ignored_double_tagged_cnt = get_train_val_splits_by_tag(train_tag_name, val_tag_name,
+                                                                     add_untagged_to, add_double_tagged_to)
+        return train_set, val_set, ignored_untagged_cnt, ignored_double_tagged_cnt
     elif split_method == "datasets":
         train_datasets = state["trainDatasets"]
         val_datasets = state["valDatasets"]
@@ -208,10 +227,15 @@ def verify_train_val_sets(train_set, val_set):
 @g.my_app.ignore_errors_and_show_dialog_window()
 def create_splits(api: sly.Api, task_id, context, state, app_logger):
     step_done = False
+    ignored_untagged_cnt = 0
+    ignored_double_tagged_cnt = 0
     global train_set, val_set
     try:
         api.task.set_field(task_id, "state.splitInProgress", True)
-        train_set, val_set = get_train_val_sets(state)
+        if state["splitMethod"] == "tags":
+            train_set, val_set, ignored_untagged_cnt, ignored_double_tagged_cnt = get_train_val_sets(state)
+        else:
+            train_set, val_set = get_train_val_sets(state)
 
         verify_train_val_sets(train_set, val_set)
         step_done = True
@@ -223,9 +247,11 @@ def create_splits(api: sly.Api, task_id, context, state, app_logger):
     finally:
         fields = [
             {"field": "state.splitInProgress", "payload": False},
-            {"field": f"data.done3", "payload": step_done},
-            {"field": f"state.trainImagesCount", "payload": None if train_set is None else len(train_set)},
-            {"field": f"state.valImagesCount", "payload": None if val_set is None else len(val_set)},
+            {"field": "data.done3", "payload": step_done},
+            {"field": "state.trainImagesCount", "payload": None if train_set is None else len(train_set)},
+            {"field": "state.valImagesCount", "payload": None if val_set is None else len(val_set)},
+            {"field": "state.ignoredUntaggedImages", "payload": ignored_untagged_cnt},
+            {"field": "state.ignoredDoubleTaggedImages", "payload": ignored_double_tagged_cnt},
         ]
         if step_done is True:
             fields.extend([

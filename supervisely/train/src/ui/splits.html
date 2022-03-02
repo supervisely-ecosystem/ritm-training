@@ -94,6 +94,15 @@
                     <el-option key="val" label="add untagged images to val set" value="val"></el-option>
                 </el-select>
             </sly-field>
+            <sly-field title="Images with both selected tags: train and validation"
+                       description="Choose what to do with double tagged images">
+                <el-select v-model="state.doubleTaggedImages" :disabled="data.done3" placeholder="Select"
+                           style="width: 280px;">
+                    <el-option key="ignore" label="ignore double tagged images" value="ignore"></el-option>
+                    <el-option key="train" label="add double tagged images to train set" value="train"></el-option>
+                    <el-option key="val" label="add double tagged images to val set" value="val"></el-option>
+                </el-select>
+            </sly-field>
         </el-tab-pane>
         <el-tab-pane name="datasets" :disabled="data.done3">
             <el-radio slot="label" v-model="state.splitMethod" label="datasets" :disabled="data.done3">
@@ -142,7 +151,19 @@
             <i class="zmdi zmdi-check-circle mr5" style="color: #13ce66"></i>
             <span style="color: #5a6772;">
                 Splits have been successfully created: {{state.trainImagesCount}} images in train,
-                {{state.valImagesCount}} images in val 
+                {{state.valImagesCount}} images in val.
+            </span>
+        </div>
+        <div v-if="state.ignoredUntaggedImages > 0">
+            <i class="zmdi zmdi-info mr5 mt10" style="color: #b8ac05"></i>
+            <span style="color: #5a6772;">
+                Ignored untagged images: {{state.ignoredUntaggedImages}} / {{data.totalImagesCount}}.
+            </span>
+        </div>
+        <div v-if="state.ignoredDoubleTaggedImages > 0">
+            <i class="zmdi zmdi-info mr5 mt10" style="color: #b8ac05"></i>
+            <span style="color: #5a6772;">
+                Ignored images with train and val tags simultaneously: {{state.ignoredDoubleTaggedImages}} / {{data.totalImagesCount}}.
             </span>
         </div>
         <el-button type="warning" class="regular mt10" :plain="true"

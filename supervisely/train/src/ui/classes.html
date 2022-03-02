@@ -30,24 +30,32 @@
         <el-table-column prop="areaPercent" label="Area percent" sortable width="150"></el-table-column>
     </el-table>
 
-    <sly-field title="INFO: Missed labels"
+    <sly-field v-if="!data.done2" title="INFO: Missed labels"
 			   description="Images without labels of selected classes will be skipped automatically."
 			   style="padding-top: 0; padding-bottom: 0; margin: 10px 5px;">
 
-		<sly-icon slot="icon" :options="{ color: '#13ce66', bgColor: '#e1f7eb', rounded: false }">
+		<sly-icon slot="icon" :options="{ color: '#b8ac05', bgColor: '#fffbca', rounded: false }">
 			<i class="zmdi zmdi-info"></i>
 		</sly-icon>
 	</sly-field>
 
+    <div v-if="state.findingItemsToIgnore">
+        <span style="color: #5a6772;">Filtering project data...</span>
+    </div>
     <el-button type="primary" class="regular mt10"
                @click="command('use_classes')"
                :disabled="state.selectedClasses.length < 1"
+               :loading="state.findingItemsToIgnore"
                v-if="!data.done2">
         Use {{state.selectedClasses.length}} selected classes
     </el-button>
     <div v-if="data.done2">
         <i class="zmdi zmdi-check-circle ml5 mr5 mt10" style="color: #13ce66"></i>
-        <span style="color: #5a6772;">Selected {{state.selectedClasses.length}} classes</span>
+        <span style="color: #5a6772;">Selected {{state.selectedClasses.length}} classes.</span>
+    </div>
+    <div v-if="data.done2 && state.ignoredItems > 0">
+        <i class="zmdi zmdi-info ml5 mr5 mt10" style="color: #b8ac05"></i>
+        <span style="color: #5a6772;">{{state.ignoredItems}} / {{state.totalItems}} images will be ignored because of no needed labels.</span>
     </div>
     <el-button type="warning" class="regular mt10" :plain="true"
                @click="state.restartFrom = 2;"
