@@ -1,6 +1,7 @@
 import os
 import supervisely as sly
 import sly_globals as g
+import splits
 
 
 def init_general(state):
@@ -22,6 +23,7 @@ def init_general(state):
         }
     }
     state["batchSizePerGPU"] = 2
+
     state["workersPerGPU"] = 1
     state["checkpointInterval"] = 5
     state["visualizationInterval"] = 1
@@ -70,4 +72,14 @@ def use_hyp(api: sly.Api, task_id, context, state, app_logger):
         {"field": "state.disabled7", "payload": False},
         {"field": "state.activeStep", "payload": 7},
     ]
+    if state["batchSizePerGPU"] > len(splits.val_set):
+        fields.append({"field": "state.batchSizePerGPU", "payload": len(splits.val_set)})
+        g.my_app.show_modal_window(
+            f"Specified batch size is more than validation split length. Batch size will be equal to length of validation split ({len(splits.val_set)})."
+        )
+    elif state["batchSizePerGPU"] > len(splits.train_set):
+        fields.append({"field": "state.batchSizePerGPU", "payload": len(splits.train_set)})
+        g.my_app.show_modal_window(
+            f"Specified batch size is more than train split length. Batch size will be equal to length of train split ({len(splits.train_set)})."
+        )
     g.api.app.set_fields(g.task_id, fields)
