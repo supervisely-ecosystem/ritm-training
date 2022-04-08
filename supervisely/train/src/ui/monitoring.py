@@ -1,6 +1,7 @@
 import supervisely as sly
 from functools import partial
 from sly_train_progress import init_progress, _update_progress_ui
+from supervisely.app.v1.widgets.chart import Chart
 import sly_globals as g
 import os
 import sys
@@ -40,13 +41,13 @@ def init_charts(data, state):
     state["smoothing"] = 0.6
 
     g.sly_charts = {
-        'lr': sly.app.widgets.Chart(g.task_id, g.api, "data.chartLR",
+        'lr': Chart(g.task_id, g.api, "data.chartLR",
                                     title="LR", series_names=["LR"],
                                     ydecimals=9, xdecimals=2),
-        'loss': sly.app.widgets.Chart(g.task_id, g.api, "data.chartLoss",
+        'loss': Chart(g.task_id, g.api, "data.chartLoss",
                                       title="Train Loss", series_names=["train"],
                                       smoothing=state["smoothing"], ydecimals=8, xdecimals=2),
-        'val_iou': sly.app.widgets.Chart(g.task_id, g.api, "data.chartIoU",
+        'val_iou': Chart(g.task_id, g.api, "data.chartIoU",
                                         title="Val Adaptive UoI", series_names=["val"],
                                         smoothing=state["smoothing"], ydecimals=6, xdecimals=2)
     }
@@ -114,18 +115,17 @@ def init_cfg(state):
 @sly.timeit
 @g.my_app.ignore_errors_and_show_dialog_window()
 def train(api: sly.Api, task_id, context, state, app_logger):
-    
     if not state["finishTrain"] and not state["continueTrain"]:
         g.api.app.set_field(task_id, "state.preparingData", True)
         sly.json.dump_json_file(state, os.path.join(g.info_dir, "ui_state.json"))
-
-        os.makedirs(g.project_dir_seg, exist_ok=True)
+        if os.path.exists(g.project_dir_seg):
+            shutil.rmtree(g.project_dir_seg)
+        os.makedirs(g.project_dir_seg)
         sly.Project.to_segmentation_task(
             g.project_dir, g.project_dir_seg,
             target_classes=state["selectedClasses"],
             segmentation_type='instance'
         )
-        shutil.rmtree(g.project_dir)
         g.project_seg = sly.Project(g.project_dir_seg, sly.OpenMode.READ)
         g.seg_project_meta = g.project_seg.meta
         g.api.app.set_field(task_id, "state.preparingData", False)
@@ -142,13 +142,14 @@ def train(api: sly.Api, task_id, context, state, app_logger):
                 {"field": "state.continueTrain", "payload": True}
             ]
             g.api.app.set_fields(g.task_id, fields)
-        except Exception as e:
-            g.api.app.set_field(task_id, "state.started", False)
-            raise e  # app will handle this error and show modal window
 
-        g.my_app.show_modal_window(
+            g.my_app.show_modal_window(
             "Training is finished, app is still running and you can preview predictions dynamics over time."
             "Please stop app manually once you are finished with it.")
+        except Exception as e:
+            torch.cuda.empty_cache()
+            g.api.app.set_field(task_id, "state.started", False)
+            raise e  # app will handle this error and show modal window
 
     else:
         fields = [

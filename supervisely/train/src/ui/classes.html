@@ -2,7 +2,7 @@
           subtitle="Select classes, that should be used for training. Other classes are ignored"
           :options="{collapsable: true}"
           :collapsed.sync="state.collapsed2"
-          :disabled="{disabled: state.disabled2, message: 'Prepare train/val splits at step 2 before selection classes'}"
+          :disabled="{disabled: state.disabled2, message: 'Download data at step 1 before choosing classes'}"
           ref="step2"
 >
     <el-table
@@ -29,7 +29,7 @@
         <el-table-column prop="objectsCount" label="Objects count" sortable width="180"></el-table-column>
         <el-table-column prop="areaPercent" label="Area percent" sortable width="150"></el-table-column>
     </el-table>
-
+    
     <sly-field v-if="!data.done2" title="INFO: Missed labels"
 			   description="Images without labels of selected classes will be skipped automatically."
 			   style="padding-top: 0; padding-bottom: 0; margin: 10px 5px;">

@@ -2,7 +2,7 @@
           subtitle="Choose model architecture and how weights should be initialized"
           :options="{collapsable: true}"
           :collapsed.sync="state.collapsed5"
-          :disabled="{disabled: state.disabled5, message: 'Finish previous steps before choose NN architecture'}"
+          :disabled="{disabled: state.disabled5, message: 'Finish previous steps before choosing NN architecture'}"
           ref="step5"
 >
     <el-tabs type="border-card" class="el-tabs-cards" v-model="state.weightsInitialization">
