@@ -4,8 +4,11 @@
   "restart_policy": "on_error",
   "categories": [
     "neural network",
-    "instance segmentation",
-    "SmartTool"
+    "images",
+    "videos",
+    "dicom",
+    "interactive segmentation",
+    "train"
   ],
   "description": "Dashboard to configure, start and monitor training",
   "need_gpu": true,
