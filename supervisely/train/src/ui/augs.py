@@ -139,7 +139,7 @@ def preview_augs(api: sly.Api, task_id, context, state, app_logger):
     img = api.image.download_np(image_info.id)
     ann_json = api.annotation.download(image_info.id).annotation
     ann = sly.Annotation.from_json(ann_json, g.project_meta)
-    gallery.set_left("before", image_info.storage_path, ann)
+    gallery.set_left("before", image_info.path_original, ann)
     _, res_img, res_ann = sly.imgaug_utils.apply(augs_ppl, g.project_meta, img, ann)
     local_image_path = os.path.join(g.my_app.data_dir, "preview_augs.jpg")
     sly.image.write(local_image_path, res_img)
