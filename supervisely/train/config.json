@@ -26,5 +26,6 @@
     "context_root": "Neural Networks",
     "context_category": "RITM"
   },
-  "poster": "https://i.imgur.com/3U7GZmf.png"
+  "poster": "https://i.imgur.com/3U7GZmf.png",
+  "community_agent": false
 }
