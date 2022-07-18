@@ -12,7 +12,7 @@
   ],
   "description": "Dashboard to configure, start and monitor training",
   "need_gpu": true,
-  "docker_image": "supervisely/ritm-training:1.1.0",
+  "docker_image": "supervisely/ritm-training:1.1.1",
   "instance_version": "6.4.57",
   "main_script": "supervisely/train/src/main.py",
   "gui_template": "supervisely/train/src/gui.html",
