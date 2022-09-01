@@ -1,6 +1,6 @@
 <div align="center" markdown> 
 
-<img src="https://i.imgur.com/3U7GZmf.png"/>
+<img src="https://user-images.githubusercontent.com/106374579/187906520-671c4261-8253-449b-94cd-03227968b077.png"/>
 
 # Train RITM
   
