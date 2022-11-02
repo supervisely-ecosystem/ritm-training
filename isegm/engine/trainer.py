@@ -206,7 +206,7 @@ class ISTrainer(object):
                     if '_loss' in k and hasattr(v, 'log_states') and self.loss_cfg.get(k + '_weight', 0.0) > 0:
                         v.log_states(self.sw, f'{log_prefix}Losses/{k}', global_step)
 
-                lr_val = self.lr if not hasattr(self, 'lr_scheduler') else self.lr_scheduler.get_lr()[-1]
+                lr_val = self.optim.param_groups[0]['lr']
                 g.sly_charts['lr'].append(x=round(global_step / len(tbar), 2), y=round(lr_val, 9),
                                               series_name='LR')
                 self.sw.add_scalar(tag=f'{log_prefix}States/learning_rate',
