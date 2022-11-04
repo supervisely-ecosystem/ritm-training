@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import os
 
 from .log import logger
 
@@ -15,7 +16,15 @@ def get_dims_with_exclusion(dim, exclude=None):
 def save_checkpoint(net, checkpoints_path, epoch=None, prefix='', verbose=True, multi_gpu=False, best=False, last=False, optimizer=None):
     assert not (best and last)
     if best:
-        checkpoint_name = 'best_checkpoint.pth'
+        if checkpoints_path.exists():
+            checkpoints = os.listdir(checkpoints_path)
+            for checkpoint in checkpoints:
+                if checkpoint.startswith("best_checkpoint"):
+                    os.remove(os.path.join(checkpoints_path, checkpoint))
+        if epoch is not None:
+            checkpoint_name = f'best_checkpoint_{str(epoch).zfill(3)}.pth'
+        else:
+            checkpoint_name = 'best_checkpoint.pth'
     elif last:
         assert optimizer is not None
         assert epoch is not None

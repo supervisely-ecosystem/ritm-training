@@ -291,7 +291,7 @@ class ISTrainer(object):
                     if metric_val > self.best_val_metric:
                         self.best_val_metric = metric_val
                         save_checkpoint(self.net, self.cfg.CHECKPOINTS_PATH, prefix=self.task_prefix,
-                                        epoch=None, multi_gpu=self.cfg.multi_gpu, best=True)
+                                        epoch=epoch + 1, multi_gpu=self.cfg.multi_gpu, best=True)
 
                 self.sw.add_scalar(tag=f'{log_prefix}Metrics/{metric.name}', value=metric.get_epoch_value(),
                                    global_step=epoch + 1, disable_avg=True)
