@@ -43,15 +43,17 @@ trainset = InstanceSegmentationDataset(
     points_sampler=points_sampler
 )
 
-s = trainset.get_sample(0)
+for i in range(len(trainset)):
+    s = trainset.get_sample(i)
 
-sly.image.write("image.png", s.image)
-sly.image.write("_encoded_masks.png", s._encoded_masks*255)
+os.makedirs("test", exist_ok=True)
+sly.image.write("test/image.png", s.image)
+sly.image.write("test/_encoded_masks.png", s._encoded_masks*255)
 
 s2 = trainset.augment_sample(s)
 trainset.points_sampler.sample_object(s2)
 mask = trainset.points_sampler.selected_mask
 
-sly.image.write("image2.png", s2.image)
-sly.image.write("_encoded_masks2.png", s2._encoded_masks*255)
-sly.image.write("mask.png", mask[0].astype(bool)*255)
+sly.image.write("test/image2.png", s2.image)
+sly.image.write("test/_encoded_masks2.png", s2._encoded_masks*255)
+sly.image.write("test/mask.png", mask[0].astype(bool)*255)

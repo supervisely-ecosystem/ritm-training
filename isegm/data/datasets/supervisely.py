@@ -116,9 +116,10 @@ class InstanceSegmentationDataset(ISDataset):
             ox, oy = xyxy[:2]  # origin
             scales = np.random.uniform(*self.crop_scale_range, size=4)
             xyxy_scaled = (xyxy - c) * scales + c
-            xyxy_scaled[::2] = np.clip(xyxy_scaled[::2], 0, img_w)
-            xyxy_scaled[1::2] = np.clip(xyxy_scaled[1::2], 0, img_h)
-            l,t,r,b = np.round(xyxy_scaled).astype(int)
+            xyxy_scaled = np.round(xyxy_scaled).astype(int)
+            xyxy_scaled[::2] = np.clip(xyxy_scaled[::2], 0, img_w-1)
+            xyxy_scaled[1::2] = np.clip(xyxy_scaled[1::2], 0, img_h-1)
+            l,t,r,b = xyxy_scaled
             rect_scaled = sly.Rectangle(t,l,b,r)
             h,w = rect_scaled.height, rect_scaled.width
             # crop image to object
@@ -127,7 +128,7 @@ class InstanceSegmentationDataset(ISDataset):
             result_mask = np.zeros((h,w), dtype=np.int32)
             mask = bitmap.data
             result_mask[oy-t:rect.bottom-t+1, ox-l:rect.right-l+1] = mask
-            assert image.shape[:2] == result_mask.shape
+            assert image.shape[:2] == result_mask.shape, f"{image.shape}, {result_mask.shape}"
         else:
             # uncrop bitmap
             result_mask = np.zeros((img_h,img_w), dtype=np.int32)

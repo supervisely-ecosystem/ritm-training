@@ -9,7 +9,7 @@
 
             <sly-field title="Task type"
                 description="Is instance segmentation task? (uncheck for semantic segmentation)">
-                <el-checkbox v-model="state.is_instance_segmentation" :disabled="true">
+                <el-checkbox v-model="state.is_instance_segmentation" :disabled="data.done6">
             </sly-field>
 
             <sly-field title="Device"
