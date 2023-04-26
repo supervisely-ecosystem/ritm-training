@@ -109,6 +109,7 @@ def init_cfg(state):
     g.train_cfg["instance_aux_loss"] = getattr(sys.modules[__name__], state["instanceAuxLoss"])
     g.train_cfg["instance_loss_weight"] = state["instanceLossWeight"]
     g.train_cfg["instance_aux_loss_weight"] = state["instanceAuxLossWeight"]
+    g.is_instance_segmentation = state["is_instance_segmentation"]
 
 
 @g.my_app.callback("train")
