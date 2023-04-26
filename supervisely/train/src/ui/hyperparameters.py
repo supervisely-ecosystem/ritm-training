@@ -28,6 +28,7 @@ def init_general(state):
     state["checkpointInterval"] = 5
     state["visualizationInterval"] = 1
     state["maxNumPoints"] = 12
+    state["is_instance_segmentation"] = True
 
 def init_optimizer(state):
     state["optimizer"] = "adam"

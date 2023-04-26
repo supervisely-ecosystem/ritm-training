@@ -57,7 +57,9 @@ def train(model, cfg, model_cfg):
                                        merge_objects_prob=0.15,
                                        max_num_merged_objects=2)
 
-    trainset = SuperviselyDataset(
+    dataset_cls = InstanceSegmentationDataset if g.is_instance_segmentation else SuperviselyDataset
+
+    trainset = dataset_cls(
         g.project_dir_seg,
         split='train',
         augmentator=train_augs,
@@ -66,7 +68,7 @@ def train(model, cfg, model_cfg):
         points_sampler=points_sampler
     )
 
-    valset = SuperviselyDataset(
+    valset = dataset_cls(
         g.project_dir_seg,
         split='val',
         augmentator=val_augs,

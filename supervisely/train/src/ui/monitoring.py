@@ -87,7 +87,7 @@ def init_cfg(state):
         g.train_cfg["num_epochs"] += state["addEpochs"]
     else:
         g.train_cfg["num_epochs"] = state["epochs"]
-    g.train_cfg["input_size"] = (state["input_size"]["value"]["height"], state["input_size"]["value"]["height"])
+    g.train_cfg["input_size"] = (state["input_size"]["value"]["height"], state["input_size"]["value"]["width"])
     g.train_cfg["checkpoint_interval"] = state["checkpointInterval"]
     g.train_cfg["visualization_interval"] = state["visualizationInterval"]
     g.train_cfg["max_num_points"] = state["maxNumPoints"]

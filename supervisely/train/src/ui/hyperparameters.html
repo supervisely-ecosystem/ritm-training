@@ -6,6 +6,12 @@
 >
     <el-tabs type="border-card" class="el-tabs-cards" v-model="state.currentTab">
         <el-tab-pane label="General" name="general">
+
+            <sly-field title="Task type"
+                description="Is instance segmentation task? (uncheck for semantic segmentation)">
+                <el-checkbox v-model="state.is_instance_segmentation" :disabled="true">
+            </sly-field>
+
             <sly-field title="Device"
                        description="Run nvidia-smi or check agent page to see how many devices your machine has or keep by default">
                 <el-select v-model="state.gpusId" :disabled="true">
