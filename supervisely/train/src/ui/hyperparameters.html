@@ -16,11 +16,13 @@
                     <el-radio-button label="semantic"></el-radio-button>
             </sly-field>
             
-            <sly-field title="Crop objects"
-                description="Cropping objects can help to train the model more accurate in smart tool inference.">
-                <el-checkbox v-model="state.cropObjects" :disabled="data.done6" :visible="state.segmentationType == instance">
+            <sly-field
+                title="Crop to objects"
+                description="Cropping to objects can help training more accurate model for smart tool inference."
+                v-show="state.segmentationType === 'instance'">
+                    <el-checkbox v-model="state.cropObjects"
+                    :disabled="data.done6" v-show="state.segmentationType === 'instance'">
             </sly-field>
-            
             
             <sly-field title="Device"
                        description="Run nvidia-smi or check agent page to see how many devices your machine has or keep by default">
