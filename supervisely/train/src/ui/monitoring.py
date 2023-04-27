@@ -111,7 +111,7 @@ def init_cfg(state):
     g.train_cfg["instance_aux_loss_weight"] = state["instanceAuxLossWeight"]
     g.is_instance_segmentation = state["segmentationType"] == "instance"
     g.crop_objects = state["cropObjects"]
-    sly.logger.debug(state["segmentationType"])
+    sly.logger.debug(f'segmentationType={state["segmentationType"]}')
 
 
 @g.my_app.callback("train")
