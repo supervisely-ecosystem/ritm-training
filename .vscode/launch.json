@@ -2,10 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Test",
+            "name": "Main",
             "type": "python",
             "request": "launch",
-            "program": "supervisely/train/src/test.py",
+            "program": "supervisely/train/src/main.py",
             "console": "integratedTerminal",
             "justMyCode": false,
             "env": {
@@ -14,10 +14,10 @@
             }
         },
         {
-            "name": "Main",
+            "name": "Test",
             "type": "python",
             "request": "launch",
-            "program": "supervisely/train/src/main.py",
+            "program": "supervisely/train/src/test.py",
             "console": "integratedTerminal",
             "justMyCode": false,
             "env": {

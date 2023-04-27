@@ -77,6 +77,10 @@ def train(model, cfg, model_cfg):
         points_sampler=points_sampler
     )
 
+    if g.is_instance_segmentation:
+        trainset.crop_to_object = g.crop_objects
+        valset.crop_to_object = g.crop_objects
+
     optimizer_params = g.train_cfg["optim_params"]
 
     lr_scheduler = partial(torch.optim.lr_scheduler.StepLR, gamma=g.train_cfg["step_lr_gamma"], step_size=1)

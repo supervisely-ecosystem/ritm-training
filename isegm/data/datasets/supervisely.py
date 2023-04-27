@@ -90,6 +90,7 @@ class InstanceSegmentationDataset(ISDataset):
 
         self.crop_to_object = crop_to_object
         self.crop_scale_range = [1.0, 1.5]
+        sly.logger.debug(f"crop_objects={crop_to_object}")
 
     def init_dataset_samples(self, split_json):
         items = {"dataset_name":[], "item_name":[], "mask":[], "img_path":[]}
