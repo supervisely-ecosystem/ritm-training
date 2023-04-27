@@ -6,7 +6,6 @@ pretrained_models
 *.so
 *.ipynb_checkpoints*
 
-.vscode
 supervisely/train/secret_debug.env
 data
 app_cache
