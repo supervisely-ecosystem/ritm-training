@@ -22,12 +22,21 @@ g.project_seg = sly.Project(g.project_dir_seg, sly.OpenMode.READ)
 g.seg_project_meta = g.project_seg.meta
 
 
+tw, th = 400,200
 train_augs = iaa.Sequential([
             # iaa.PadToFixedSize(width=512, height=512),
             # iaa.CropToFixedSize(width=512, height=512),
-            iaa.Resize({"longer-side":64, "shorter-side":"keep-aspect-ratio"})
+            # iaa.Resize({"longer-side":64, "shorter-side":"keep-aspect-ratio"})
+            iaa.PadToAspectRatio(tw/th),
+            iaa.Resize({"width":tw, "height":th})
         ], random_order=False)
 
+img = sly.image.read("b.png")
+import cv2
+img = cv2.resize(img, (200,300))
+sly.image.write("b2.png", img)
+img2 = train_augs(image=img)
+sly.image.write("b3.png", img2)
 
 points_sampler = MultiPointSampler(20, prob_gamma=0.80,
                                     merge_objects_prob=0.15,

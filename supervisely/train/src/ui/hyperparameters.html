@@ -35,7 +35,7 @@
                 <el-input-number v-model="state.epochs" :min="2" :max="10000" :disabled="data.done6"></el-input-number>
             </sly-field>
             <sly-field title="Input size" description="Model input resolution">
-                <sly-size v-model="state.input_size.value" :options="state.input_size.options"></sly-size>
+                <sly-size v-model="state.input_size.value" :options="state.input_size.options" :disabled="data.done6"></sly-size>
             </sly-field>
 
             <sly-field title="Batch size per GPU"
