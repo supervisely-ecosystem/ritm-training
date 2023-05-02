@@ -7,6 +7,7 @@ import json
 
 from isegm.utils.misc import get_bbox_from_mask, get_labels_with_sizes
 from isegm.data.base import ISDataset
+import supervisely as sly
 from sly_sample import Sample
 
 import sly_globals as g
@@ -69,6 +70,72 @@ class SuperviselyDataset(ISDataset):
         for color_idx, color in enumerate(self.palette):
             colormap = np.where(np.all(instances_mask == color, axis=-1))
             result_mask[colormap] = color_idx + 1
+
+        instances_ids, _ = get_labels_with_sizes(result_mask)
+
+        return Sample(image, result_mask, objects_ids=instances_ids, sample_id=index)
+
+
+class InstanceSegmentationDataset(ISDataset):
+    def __init__(self, dataset_path, split='train', crop_to_object=True, **kwargs):
+        super(InstanceSegmentationDataset, self).__init__(**kwargs)
+        assert split in {'train', 'val'}
+
+        self.dataset_path = Path(dataset_path)
+        self.dataset_split = split
+        self.sly_project : sly.Project = g.project_seg
+        split_json = sly.json.load_json_file(os.path.join(g.my_app.data_dir, f'{split}.json'))
+        self.dataset_samples_dict = self.init_dataset_samples(split_json)
+        self.dataset_samples = list(zip(*self.dataset_samples_dict.values()))
+
+        self.crop_to_object = crop_to_object
+        self.crop_scale_range = [1.0, 1.25]  # padding to crop
+        sly.logger.debug(f"crop_objects={crop_to_object}")
+
+    def init_dataset_samples(self, split_json):
+        items = {"dataset_name":[], "item_name":[], "mask":[], "img_path":[]}
+        for item in split_json:
+            ds : sly.Dataset = self.sly_project.datasets.get(item["dataset_name"])
+            ann = ds.get_ann(item["item_name"], g.seg_project_meta)
+            for l in ann.labels:
+                items['dataset_name'].append(item['dataset_name'])
+                items['item_name'].append(item['item_name'])
+                items['mask'].append(l.geometry)
+                items['img_path'].append(ds.get_img_path(item['item_name']))
+        return items
+
+    def get_sample(self, index):
+        dataset_name, item_name, bitmap, image_path = self.dataset_samples[index]
+        bitmap : sly.Bitmap
+        image = cv2.imread(image_path)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        img_h, img_w, _ = image.shape
+        if self.crop_to_object:
+            rect = bitmap.to_bbox()
+            c = np.array([rect.center.col, rect.center.row, rect.center.col, rect.center.row])
+            xyxy = np.array([rect.left, rect.top, rect.right, rect.bottom])
+            ox, oy = xyxy[:2]  # origin
+            scales = np.random.uniform(*self.crop_scale_range, size=4)
+            xyxy_scaled = (xyxy - c) * scales + c
+            xyxy_scaled = np.round(xyxy_scaled).astype(int)
+            xyxy_scaled[::2] = np.clip(xyxy_scaled[::2], 0, img_w-1)
+            xyxy_scaled[1::2] = np.clip(xyxy_scaled[1::2], 0, img_h-1)
+            l,t,r,b = xyxy_scaled
+            rect_scaled = sly.Rectangle(t,l,b,r)
+            h,w = rect_scaled.height, rect_scaled.width
+            # crop image to object
+            image = image[t:b+1, l:r+1]
+            # draw object in mask
+            result_mask = np.zeros((h,w), dtype=np.int32)
+            mask = bitmap.data
+            result_mask[oy-t:rect.bottom-t+1, ox-l:rect.right-l+1] = mask
+            assert image.shape[:2] == result_mask.shape, f"{image.shape}, {result_mask.shape}"
+        else:
+            # uncrop bitmap
+            result_mask = np.zeros((img_h,img_w), dtype=np.int32)
+            rect = bitmap.to_bbox()
+            l,t,r,b = [rect.left, rect.top, rect.right, rect.bottom]
+            result_mask[t:b+1,l:r+1] = bitmap.data
 
         instances_ids, _ = get_labels_with_sizes(result_mask)
 

@@ -87,7 +87,7 @@ def init_cfg(state):
         g.train_cfg["num_epochs"] += state["addEpochs"]
     else:
         g.train_cfg["num_epochs"] = state["epochs"]
-    g.train_cfg["input_size"] = (state["input_size"]["value"]["height"], state["input_size"]["value"]["height"])
+    g.train_cfg["input_size"] = (state["input_size"]["value"]["height"], state["input_size"]["value"]["width"])
     g.train_cfg["checkpoint_interval"] = state["checkpointInterval"]
     g.train_cfg["visualization_interval"] = state["visualizationInterval"]
     g.train_cfg["max_num_points"] = state["maxNumPoints"]
@@ -109,6 +109,9 @@ def init_cfg(state):
     g.train_cfg["instance_aux_loss"] = getattr(sys.modules[__name__], state["instanceAuxLoss"])
     g.train_cfg["instance_loss_weight"] = state["instanceLossWeight"]
     g.train_cfg["instance_aux_loss_weight"] = state["instanceAuxLossWeight"]
+    g.is_instance_segmentation = state["segmentationType"] == "instance"
+    g.crop_objects = state["cropObjects"]
+    sly.logger.debug(f'segmentationType={state["segmentationType"]}')
 
 
 @g.my_app.callback("train")

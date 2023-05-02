@@ -19,7 +19,7 @@ def init_general(state):
                 "width": 100,
                 "height": 100
             },
-            "min": 64
+            "min": 1
         }
     }
     state["batchSizePerGPU"] = 2
@@ -28,6 +28,8 @@ def init_general(state):
     state["checkpointInterval"] = 5
     state["visualizationInterval"] = 1
     state["maxNumPoints"] = 12
+    state["segmentationType"] = "instance"
+    state["cropObjects"] = True
 
 def init_optimizer(state):
     state["optimizer"] = "adam"

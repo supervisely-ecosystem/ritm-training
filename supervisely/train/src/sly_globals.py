@@ -49,6 +49,9 @@ project_dir = os.path.join(my_app.data_dir, "sly_project")
 project_dir_seg = os.path.join(my_app.data_dir, "sly_seg_project")
 project_fs: sly.Project = None
 project_seg: sly.Project = None
+seg_project_meta: sly.ProjectMeta = None
+is_instance_segmentation = True
+crop_objects = True
 
 artifacts_dir = os.path.join(my_app.data_dir, "artifacts")
 info_dir = os.path.join(artifacts_dir, "info")

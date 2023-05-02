@@ -74,7 +74,7 @@ def init(data, state):
     templates_info, name_to_py = get_aug_templates_list()
     data["augTemplates"] = templates_info
     data["augPythonCode"] = name_to_py
-    state["augsTemplateName"] = templates_info[-1]["name"]
+    state["augsTemplateName"] = templates_info[-2]["name"]
     _, py_code, config = get_template_by_name(state["augsTemplateName"])
     global augs_json_config, augs_py_preview
     augs_json_config = config
