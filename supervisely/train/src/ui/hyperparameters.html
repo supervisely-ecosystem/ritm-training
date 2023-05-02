@@ -18,10 +18,9 @@
             
             <sly-field
                 title="Crop to objects"
-                description="Cropping to objects can help training more accurate model for smart tool inference."
+                description="Cropping to objects can help to train more accurate model for SmartTool inference."
                 v-show="state.segmentationType === 'instance'">
-                    <el-checkbox v-model="state.cropObjects"
-                    :disabled="data.done6" v-show="state.segmentationType === 'instance'">
+                    <el-switch v-model="state.cropObjects" on-color="#13ce66" off-color="#B8B8B8" :disabled="data.done6" v-show="state.segmentationType === 'instance'"></el-switch>
             </sly-field>
             
             <sly-field title="Device"
