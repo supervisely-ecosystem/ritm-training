@@ -5,30 +5,32 @@
           :disabled="{disabled: state.disabled2, message: 'Download data at step 1 before choosing classes'}"
           ref="step2"
 >
-    <el-table
-            class="ultra-table"
-            :data="data.classes"
-            style="width: 100%"
-            max-height="500"
-            :disabled="data.done2"
-            @selection-change="
-                (val) => {
-                    state.selectedClasses = val.map(x => x.title);
-                }
-                "
-    >
-        <el-table-column type="selection" width="55"></el-table-column>
-        <el-table-column label="Name" prop="title" sortable>
-            <template scope="scope">
-                <i class="zmdi zmdi-circle mr5" :style="{color: scope.row.color}"></i>
-                {{ scope.row.title }}
-            </template>
-        </el-table-column>
-        <el-table-column prop="shape" label="Shape" sortable width="180"></el-table-column>
-        <el-table-column prop="imagesCount" label="Images count" sortable width="150"></el-table-column>
-        <el-table-column prop="objectsCount" label="Objects count" sortable width="180"></el-table-column>
-        <el-table-column prop="areaPercent" label="Area percent" sortable width="150"></el-table-column>
-    </el-table>
+    <sly-el-table-selection-container :data="data.classes" :selected="state.selectedClasses" identity-field="title">
+	    <el-table
+	            class="ultra-table"
+	            :data="data.classes"
+	            style="width: 100%"
+	            max-height="500"
+	            :disabled="data.done2"
+	            @selection-change="
+	                (val) => {
+	                    state.selectedClasses = val.map(x => x.title);
+	                }
+	                "
+	    >
+	        <el-table-column type="selection" width="55"></el-table-column>
+	        <el-table-column label="Name" prop="title" sortable>
+	            <template scope="scope">
+	                <i class="zmdi zmdi-circle mr5" :style="{color: scope.row.color}"></i>
+	                {{ scope.row.title }}
+	            </template>
+	        </el-table-column>
+	        <el-table-column prop="shape" label="Shape" sortable width="180"></el-table-column>
+	        <el-table-column prop="imagesCount" label="Images count" sortable width="150"></el-table-column>
+	        <el-table-column prop="objectsCount" label="Objects count" sortable width="180"></el-table-column>
+	        <el-table-column prop="areaPercent" label="Area percent" sortable width="150"></el-table-column>
+	    </el-table>
+    </sly-el-table-selection-container>
     
     <sly-field v-if="!data.done2" title="INFO: Missed labels"
 			   description="Images without labels of selected classes will be skipped automatically."
