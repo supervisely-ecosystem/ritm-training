@@ -1,4 +1,4 @@
-<div align="center" markdown> 
+f<div align="center" markdown> 
 
 <img src="https://user-images.githubusercontent.com/106374579/187906520-671c4261-8253-449b-94cd-03227968b077.png"/>
 
@@ -36,7 +36,7 @@ Available 4 pretrained checkpoints based on HRNet for interactive click-based se
 3. Run app from context menu of images project
 4. Push "Finish training" button when training will be completed if you don't want to continue training.
 
-<img src="https://i.imgur.com/q9fHzV7.png" />
+<img src="media/htr1.png" />
 
 
 ## Related Apps
@@ -46,11 +46,11 @@ You can use served model in next Supervisely Applications ⬇️
 
 - [RITM interactive segmentation SmartTool](https://ecosystem.supervise.ly/apps/supervisely-ecosystem%2Fritm-interactive-segmentation%2Fsupervisely) - app allows to apply your trained model to your data in real time interactively. Just run app and specify path to your custom model, open your data project and enjoy fast labeling!
    
-    <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/ritm-interactive-segmentation/supervisely" src="https://i.imgur.com/CCnlZJP.png" width="350px"/> 
+    <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/ritm-interactive-segmentation/supervisely" src="edia/r1.png" width="350px"/> 
 
 - [Flying Objects](https://ecosystem.supervise.ly/apps/flying-objects) - app allows to generate synthetic data for training RITM model. Configure background images and labeled segments and you'll get a mix. Flexible app setting allow train strong models even on an extremely small labeled data.
    
-    <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/flying-objects" src="https://i.imgur.com/x5cafOU.png" width="350px"/>
+    <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/flying-objects" src="media/r2.png" width="350px"/>
 
 ## Video
 
@@ -58,7 +58,7 @@ In progress. Will be available soon.
 
 ## Screenshot
 
-<img src="https://i.imgur.com/oZb4C6G.png"/>
+<img src="media/s1.png"/>
 
 ## Acknowledgment
 
