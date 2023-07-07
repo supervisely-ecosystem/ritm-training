@@ -17,7 +17,7 @@
   "main_script": "supervisely/train/src/main.py",
   "gui_template": "supervisely/train/src/gui.html",
   "task_location": "workspace_tasks",
-  "icon": "https://i.imgur.com/UwsMZ6X.png",
+  "icon": "supervisely/train/media/icon.png",
   "icon_background": "#FFFFFF",
   "context_menu": {
     "target": [
