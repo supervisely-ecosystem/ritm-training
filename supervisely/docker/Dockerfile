@@ -9,8 +9,11 @@ RUN wget -O /ritm_models/coco_lvis_h18_itermask.pth https://github.com/supervise
 RUN wget -O /ritm_models/coco_lvis_h32_itermask.pth https://github.com/supervisely-ecosystem/ritm-interactive-segmentation/releases/download/v0.1/coco_lvis_h32_itermask.pth
 
 # install pytorch
-RUN pip3 install torch==1.10.0+cu111 torchvision==0.11.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
-RUN pip3 install diskcache==5.2.1 easydict tensorboard
-RUN pip3 install opencv-python-headless==4.5.5.62 opencv-python==4.5.5.62 Pillow matplotlib imgaug>=0.4
-RUN pip3 install albumentations==0.5.2 graphviz tqdm pyyaml
-RUN pip3 install future cffi ninja
+RUN pip install torch==1.10.0+cu111 torchvision==0.11.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
+RUN pip install diskcache==5.2.1 easydict tensorboard
+RUN pip install opencv-python-headless==4.5.5.62 opencv-python==4.5.5.62 Pillow matplotlib imgaug>=0.4
+RUN pip install albumentations==0.5.2 graphviz tqdm pyyaml
+RUN pip install future cffi ninja
+COPY dev_requirements.txt dev_requirements.txt
+RUN pip install -r dev_requirements.txt
+RUN pip install protobuf==3.20.3
