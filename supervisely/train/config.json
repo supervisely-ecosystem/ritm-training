@@ -12,7 +12,7 @@
   ],
   "description": "Dashboard to configure, start and monitor training",
   "need_gpu": true,
-  "docker_image": "supervisely/ritm-training:1.1.3",
+  "docker_image": "supervisely/ritm-training:1.1.4",
   "instance_version": "6.4.57",
   "main_script": "supervisely/train/src/main.py",
   "gui_template": "supervisely/train/src/gui.html",
@@ -20,9 +20,7 @@
   "icon": "https://i.imgur.com/UwsMZ6X.png",
   "icon_background": "#FFFFFF",
   "context_menu": {
-    "target": [
-      "images_project"
-    ],
+    "target": ["images_project"],
     "context_root": "Neural Networks",
     "context_category": "RITM"
   },

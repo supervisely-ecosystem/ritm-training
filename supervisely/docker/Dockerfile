@@ -1,4 +1,4 @@
-FROM supervisely/base-py-sdk:6.72.65
+FROM supervisely/base-py-sdk:6.36.0
 
 RUN mkdir /ritm_models
 
