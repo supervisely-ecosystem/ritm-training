@@ -17,5 +17,5 @@ tensorboard
 future
 cffi
 ninja
-supervisely==6.36.0
-supervisely[apps]==6.36.0
+supervisely==6.72.65
+supervisely[apps]==6.72.65
