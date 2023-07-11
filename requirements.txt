@@ -1,3 +1,2 @@
 imagecorruptions==1.1.2
-supervisely[apps]==6.72.66
-fastapi<0.100.0
+supervisely[apps]==6.72.67
