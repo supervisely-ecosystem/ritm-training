@@ -48,7 +48,7 @@ def init_charts(data, state):
                                       title="Train Loss", series_names=["train"],
                                       smoothing=state["smoothing"], ydecimals=8, xdecimals=2),
         'val_iou': Chart(g.task_id, g.api, "data.chartIoU",
-                                        title="Val Adaptive UoI", series_names=["val"],
+                                        title="Val Adaptive IoU", series_names=["val"],
                                         smoothing=state["smoothing"], ydecimals=6, xdecimals=2)
     }
 
