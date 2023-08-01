@@ -24,6 +24,10 @@
 
 ## Overview 
 
+🔥🔥🔥 Check out our [youtube tutorial](https://youtu.be/7oEf_R74-z0) and the [complete guide in our blog](https://supervisely.com/blog/custom-smarttool-wheat/):   
+
+<a href="https://youtu.be/Rsr8xWJ6s9I" target="_blank"><img src="https://github.com/supervisely/blog-raw-media-content/assets/106374579/a4e11e8b-53cb-42ab-ac56-794191f1caae"/></a>
+
 This app provides dashboard for training RITM models in Supervisely. 
 
 Available 4 pretrained checkpoints based on HRNet for interactive click-based segmentation. This app helps you fine-tune these checkpoints on your data and speed up labeling process at times.
