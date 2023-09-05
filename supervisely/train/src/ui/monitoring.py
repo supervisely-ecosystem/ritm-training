@@ -67,13 +67,15 @@ def upload_artifacts_and_log_progress():
     _save_link_to_ui(g.artifacts_dir, g.my_app.app_url)
 
     def upload_monitor(monitor, api: sly.Api, task_id, progress: sly.Progress):
-        if progress.total == 0:
-            progress.set(monitor.bytes_read, monitor.len, report=False)
-        else:
-            progress.set_current_value(monitor.bytes_read, report=False)
+        # Don't trust monitor.len
+        # if progress.total == 0:
+        #     progress.set(monitor.bytes_read, monitor.len, report=False)
+        # else:
+        progress.set_current_value(monitor.bytes_read, report=False)
         _update_progress_ui("UploadDir", g.api, g.task_id, progress)
-    
-    progress = sly.Progress("Upload directory with training artifacts to Team Files", 0, is_size=True)
+
+    dir_size = sly.fs.get_directory_size(g.artifacts_dir)
+    progress = sly.Progress("Upload directory with training artifacts to Team Files", dir_size, is_size=True)
     progress_cb = partial(upload_monitor, api=g.api, task_id=g.task_id, progress=progress)
 
     remote_dir = f"/RITM_training/{g.task_id}_{g.project_info.name}"
