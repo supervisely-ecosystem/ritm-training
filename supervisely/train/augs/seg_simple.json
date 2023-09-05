@@ -62,12 +62,12 @@
             "name": "JpegCompression",
             "params": {
                 "compression": [
-                    85,
-                    100
+                    70,
+                    95
                 ]
             },
             "sometimes": 0.2,
-            "python": "iaa.Sometimes(0.2, iaa.arithmetic.JpegCompression(compression=(85, 100)))"
+            "python": "iaa.Sometimes(0.2, iaa.arithmetic.JpegCompression(compression=(70, 95)))"
         }
     ],
     "random_order": false
