@@ -44,17 +44,18 @@ def train(model, cfg, model_cfg):
     if augs.augs_config_path is not None:
         augs_config = sly.json.load_json_file(augs.augs_config_path)
         train_augs = sly.imgaug_utils.build_pipeline(augs_config["pipeline"], random_order=augs_config["random_order"])
-        train_augs.append(iaa.PadToAspectRatio(aspect_ratio))
-        train_augs.append(iaa.Resize({"width": width, "height": height}))
+        train_augs.append(iaa.PadToFixedSize(width=width, height=height))
+        train_augs.append(iaa.CropToFixedSize(width=width, height=height))
     else:
         iaa.Sequential()
         train_augs = iaa.Sequential([
-            iaa.PadToAspectRatio(aspect_ratio),
-            iaa.Resize({"width": width, "height": height}),
+            iaa.PadToFixedSize(width=width, height=height),
+            iaa.CropToFixedSize(width=width, height=height)
         ], random_order=False)
+        
     val_augs = iaa.Sequential([
-            iaa.PadToAspectRatio(aspect_ratio),
-            iaa.Resize({"width": width, "height": height}),
+            iaa.PadToFixedSize(width=width, height=height),
+            iaa.CropToFixedSize(width=width, height=height)
     ], random_order=False)
 
     points_sampler = MultiPointSampler(model_cfg.num_max_points, prob_gamma=0.80,
