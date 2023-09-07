@@ -1,7 +1,7 @@
 from isegm.utils.exp_imports.default import *
 import sly_globals as g
 import supervisely as sly
-import augs
+from monitoring import get_preprocessing_pipelines
 import imgaug.augmenters as iaa
 
 MODEL_NAME = 'hrnet18s'
@@ -38,35 +38,19 @@ def train(model, cfg, model_cfg):
     loss_cfg.instance_aux_loss = g.train_cfg["instance_aux_loss"]()
     loss_cfg.instance_aux_loss_weight = g.train_cfg["instance_aux_loss_weight"]
     
-    width, height = g.train_cfg["input_size"][1], g.train_cfg["input_size"][0]
-    aspect_ratio = width/height
-
-    if augs.augs_config_path is not None:
-        augs_config = sly.json.load_json_file(augs.augs_config_path)
-        train_augs = sly.imgaug_utils.build_pipeline(augs_config["pipeline"], random_order=augs_config["random_order"])
-        train_augs.append(iaa.PadToFixedSize(width=width, height=height))
-        train_augs.append(iaa.CropToFixedSize(width=width, height=height))
-    else:
-        iaa.Sequential()
-        train_augs = iaa.Sequential([
-            iaa.PadToFixedSize(width=width, height=height),
-            iaa.CropToFixedSize(width=width, height=height)
-        ], random_order=False)
-        
-    val_augs = iaa.Sequential([
-            iaa.PadToFixedSize(width=width, height=height),
-            iaa.CropToFixedSize(width=width, height=height)
-    ], random_order=False)
+    train_augs, val_augs = get_preprocessing_pipelines()
+    crop_to_object = g.resize_mode == "Crop to fit an instance object"
 
     points_sampler = MultiPointSampler(model_cfg.num_max_points, prob_gamma=0.80,
                                        merge_objects_prob=0.15,
                                        max_num_merged_objects=2)
-    
-    dataset_cls = InstanceSegmentationDataset if g.is_instance_segmentation else SuperviselyDataset
-    
+
+    dataset_cls = InstanceSegmentationDataset if g.segmentation_type == "Instance segmentation" else SuperviselyDataset
+
     trainset = dataset_cls(
         g.project_dir_seg,
         split='train',
+        crop_to_object=crop_to_object,
         augmentator=train_augs,
         min_object_area=10,
         keep_background_prob=0.0,
@@ -76,14 +60,11 @@ def train(model, cfg, model_cfg):
     valset = dataset_cls(
         g.project_dir_seg,
         split='val',
+        crop_to_object=crop_to_object,
         augmentator=val_augs,
         min_object_area=10,
         points_sampler=points_sampler
     )
-
-    if g.is_instance_segmentation:
-        trainset.crop_to_object = g.crop_objects
-        valset.crop_to_object = g.crop_objects
 
     optimizer_params = g.train_cfg["optim_params"]
 

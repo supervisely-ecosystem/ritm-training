@@ -111,9 +111,41 @@ def init_cfg(state):
     g.train_cfg["instance_aux_loss"] = getattr(sys.modules[__name__], state["instanceAuxLoss"])
     g.train_cfg["instance_loss_weight"] = state["instanceLossWeight"]
     g.train_cfg["instance_aux_loss_weight"] = state["instanceAuxLossWeight"]
-    g.is_instance_segmentation = state["segmentationType"] == "instance"
-    g.crop_objects = state["cropObjects"]
-    sly.logger.debug(f'segmentationType={state["segmentationType"]}')
+    g.segmentation_type = state["segmentationType"]
+    g.resize_mode = state["resizeMode"]
+    g.crop_to_aspect_ratio = state["cropToAspectRatio"]
+
+
+def get_preprocessing_pipelines():
+    import imgaug.augmenters as iaa
+    import augs
+
+    width, height = g.train_cfg["input_size"][1], g.train_cfg["input_size"][0]
+    aspect_ratio = width/height
+
+    if g.resize_mode == "Random Crop":
+        resize_augs = [
+            iaa.PadToFixedSize(width=width, height=height),
+            iaa.CropToFixedSize(width=width, height=height)
+        ]
+    elif g.resize_mode in ["Whole Image", "Crop to fit an instance object"]:
+        resize_augs = []
+        if g.crop_to_aspect_ratio:
+            resize_augs.append(iaa.CropToAspectRatio(aspect_ratio))
+        resize_augs.append(iaa.Resize({"width": width, "height": height}))
+    else:
+        raise Exception(f"Invalid resize_mode: {g.resize_mode}")
+
+    if augs.augs_config_path is not None:
+        augs_config = sly.json.load_json_file(augs.augs_config_path)
+        train_augs = sly.imgaug_utils.build_pipeline(augs_config["pipeline"], random_order=augs_config["random_order"])
+    else:
+        train_augs = iaa.Sequential([])
+
+    train_augs.extend(resize_augs)
+    val_augs = iaa.Sequential(resize_augs)
+
+    return train_augs, val_augs
 
 
 @g.my_app.callback("train")

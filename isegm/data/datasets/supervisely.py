@@ -15,9 +15,10 @@ import splits
 
 
 class SuperviselyDataset(ISDataset):
-    def __init__(self, dataset_path, split='train', **kwargs):
+    def __init__(self, dataset_path, split='train', crop_to_object=False, **kwargs):
         super(SuperviselyDataset, self).__init__(**kwargs)
         assert split in {'train', 'val'}
+        assert crop_to_object is False, '"Crop to fit an instance" resize mode is not supported for "Semantic segmentation"'
 
         self.dataset_path = Path(dataset_path)
         self.dataset_split = split
@@ -89,7 +90,7 @@ class InstanceSegmentationDataset(ISDataset):
         self.dataset_samples = list(zip(*self.dataset_samples_dict.values()))
 
         self.crop_to_object = crop_to_object
-        self.crop_scale_range = [1.0, 1.25]  # padding to crop
+        self.crop_scale_range = [1.0, 1.15]  # padding range for cropping
         sly.logger.debug(f"crop_objects={crop_to_object}")
 
     def init_dataset_samples(self, split_json):
@@ -106,38 +107,45 @@ class InstanceSegmentationDataset(ISDataset):
 
     def get_sample(self, index):
         dataset_name, item_name, bitmap, image_path = self.dataset_samples[index]
-        bitmap : sly.Bitmap
         image = cv2.imread(image_path)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        img_h, img_w, _ = image.shape
+
         if self.crop_to_object:
-            rect = bitmap.to_bbox()
-            c = np.array([rect.center.col, rect.center.row, rect.center.col, rect.center.row])
-            xyxy = np.array([rect.left, rect.top, rect.right, rect.bottom])
-            ox, oy = xyxy[:2]  # origin
-            scales = np.random.uniform(*self.crop_scale_range, size=4)
-            xyxy_scaled = (xyxy - c) * scales + c
-            xyxy_scaled = np.round(xyxy_scaled).astype(int)
-            xyxy_scaled[::2] = np.clip(xyxy_scaled[::2], 0, img_w-1)
-            xyxy_scaled[1::2] = np.clip(xyxy_scaled[1::2], 0, img_h-1)
-            l,t,r,b = xyxy_scaled
-            rect_scaled = sly.Rectangle(t,l,b,r)
-            h,w = rect_scaled.height, rect_scaled.width
-            # crop image to object
-            image = image[t:b+1, l:r+1]
-            # draw object in mask
-            result_mask = np.zeros((h,w), dtype=np.int32)
-            mask = bitmap.data
-            result_mask[oy-t:rect.bottom-t+1, ox-l:rect.right-l+1] = mask
-            assert image.shape[:2] == result_mask.shape, f"{image.shape}, {result_mask.shape}"
+            image, result_mask = crop_to_fit_instance_object(image, bitmap, self.crop_scale_range)
         else:
-            # uncrop bitmap
-            result_mask = np.zeros((img_h,img_w), dtype=np.int32)
-            rect = bitmap.to_bbox()
-            l,t,r,b = [rect.left, rect.top, rect.right, rect.bottom]
-            result_mask[t:b+1,l:r+1] = bitmap.data
+            result_mask = uncrop_bitmap(bitmap, image.shape)
 
         instances_ids, _ = get_labels_with_sizes(result_mask)
-
         return Sample(image, result_mask, objects_ids=instances_ids, sample_id=index)
 
+
+def crop_to_fit_instance_object(image: np.ndarray, bitmap: sly.Bitmap, padding_range):
+    img_h, img_w, _ = image.shape
+    rect = bitmap.to_bbox()
+    c = np.array([rect.center.col, rect.center.row, rect.center.col, rect.center.row])
+    xyxy = np.array([rect.left, rect.top, rect.right, rect.bottom])
+    ox, oy = xyxy[:2]  # origin
+    scales = np.random.uniform(*padding_range, size=4)
+    xyxy_scaled = (xyxy - c) * scales + c
+    xyxy_scaled = np.round(xyxy_scaled).astype(int)
+    xyxy_scaled[::2] = np.clip(xyxy_scaled[::2], 0, img_w-1)
+    xyxy_scaled[1::2] = np.clip(xyxy_scaled[1::2], 0, img_h-1)
+    l,t,r,b = xyxy_scaled
+    rect_scaled = sly.Rectangle(t,l,b,r)
+    h,w = rect_scaled.height, rect_scaled.width
+    # crop image to fit the object
+    image = image[t:b+1, l:r+1]
+    # draw object in mask
+    result_mask = np.zeros((h,w), dtype=np.int32)
+    mask = bitmap.data
+    result_mask[oy-t:rect.bottom-t+1, ox-l:rect.right-l+1] = mask
+    assert image.shape[:2] == result_mask.shape, f"{image.shape}, {result_mask.shape}"
+    return image, result_mask
+
+def uncrop_bitmap(bitmap, image_shape):
+    img_h, img_w, _ = image_shape
+    result_mask = np.zeros((img_h,img_w), dtype=np.int32)
+    rect = bitmap.to_bbox()
+    l,t,r,b = [rect.left, rect.top, rect.right, rect.bottom]
+    result_mask[t:b+1,l:r+1] = bitmap.data
+    return result_mask

@@ -90,15 +90,15 @@
             "name": "CropAndPad",
             "params": {
                 "percent": [
-                    -0.5,
-                    0.5
+                    -0.4,
+                    0.4
                 ],
                 "pad_mode": "constant",
                 "pad_cval": 0,
                 "keep_size": true
             },
             "sometimes": 0.2,
-            "python": "iaa.Sometimes(0.2, iaa.size.CropAndPad(percent=(-0.5, 0.5), pad_mode='constant', pad_cval=0, keep_size=True))"
+            "python": "iaa.Sometimes(0.2, iaa.size.CropAndPad(percent=(-0.4, 0.4), pad_mode='constant', pad_cval=0, keep_size=True))"
         },
         {
             "category": "flip",

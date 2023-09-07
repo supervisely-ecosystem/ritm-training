@@ -28,8 +28,9 @@ def init_general(state):
     state["checkpointInterval"] = 5
     state["visualizationInterval"] = 1
     state["maxNumPoints"] = 12
-    state["segmentationType"] = "instance"
-    state["cropObjects"] = True
+    state["segmentationType"] = "Instance segmentation"
+    state["resizeMode"] = "Random Crop"
+    state["cropToAspectRatio"] = False
 
 def init_optimizer(state):
     state["optimizer"] = "adam"

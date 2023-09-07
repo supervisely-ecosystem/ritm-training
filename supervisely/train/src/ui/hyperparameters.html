@@ -8,20 +8,13 @@
         <el-tab-pane label="General" name="general">
 
             <sly-field title="Segmentation type"
-                description="Instance or semantic segmentation.">
+                description="Instance segmentation differentiates individual objects of the same class in an image, while semantic segmentation classifies each pixel into a class without distinguishing separate object instances.">
                 <el-radio-group style="margin: 5px 0 0"
                     :disabled="data.done6"
                     v-model="state.segmentationType">
-                    <el-radio-button label="instance"></el-radio-button>
-                    <el-radio-button label="semantic"></el-radio-button>
+                    <el-radio-button label="Instance segmentation"></el-radio-button>
+                    <el-radio-button label="Semantic segmentation"></el-radio-button>
                 </el-radio-group>
-            </sly-field>
-            
-            <sly-field
-                title="Crop to objects"
-                description="Cropping to objects can help to train more accurate model for SmartTool inference."
-                v-show="state.segmentationType === 'instance'">
-                    <el-switch v-model="state.cropObjects" on-color="#13ce66" off-color="#B8B8B8" :disabled="data.done6" v-show="state.segmentationType === 'instance'"></el-switch>
             </sly-field>
             
             <sly-field title="Device"
@@ -34,8 +27,38 @@
             <sly-field title="Number of epochs">
                 <el-input-number v-model="state.epochs" :min="2" :max="10000" :disabled="data.done6"></el-input-number>
             </sly-field>
+
             <sly-field title="Input size" description="Model input resolution">
                 <sly-size v-model="state.input_size.value" :options="state.input_size.options" :disabled="data.done6"></sly-size>
+            </sly-field>
+
+            <sly-field title="Reize mode" description="Determines how to resize or to crop the image to the given size.">
+            
+                <el-radio-group style="margin: 5px 0 0"
+                :disabled="data.done6"
+                v-if="state.segmentationType === 'Instance segmentation'"
+                v-model="state.resizeMode">
+                <el-radio-button label="Random Crop"></el-radio-button>
+                <el-radio-button label="Whole Image"></el-radio-button>
+                <el-radio-button label="Crop to fit an instance object"></el-radio-button>
+            </el-radio-group>
+
+            <el-radio-group style="margin: 5px 0 0"
+                :disabled="data.done6"
+                v-if="state.segmentationType === 'Semantic segmentation'"
+                v-model="state.resizeMode">
+                <el-radio-button label="Random Crop"></el-radio-button>
+                <el-radio-button label="Whole Image"></el-radio-button>
+            </el-radio-group>
+            
+            <sly-field  v-if="state.resizeMode !== 'Random Crop'">
+                <el-checkbox :disabled="data.done6" v-model="state.cropToAspectRatio">Keep aspect ratio</el-checkbox>
+            </sly-field>
+
+            <sly-notification-2 style="width: 40%" v-if="state.resizeMode === 'Random Crop'" class="mt10">"Random Crop" mode just crops the image to the given size, which is used in the original implementation. Note, that if your images are large (e.g. 4k), the crops like 256x256 might be uninformative to the model.</sly-notification-2>
+            <sly-notification-2 style="width: 40%" v-if="state.resizeMode === 'Whole Image'" class="mt10">"Whole Image" mode will resize the image to the given size.</sly-notification-2>
+            <sly-notification-2 style="width: 40%" v-if="state.resizeMode === 'Crop to fit an instance object'" class="mt10">"Crop to fit an instance object" mode will crop the image to fit the object, and then resize it to the given size. Note: As RITM is class-agnostic, so at each training step a random object is sampled for an image.</sly-notification-2>
+
             </sly-field>
 
             <sly-field title="Batch size per GPU"
