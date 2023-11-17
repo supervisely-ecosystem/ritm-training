@@ -54,7 +54,8 @@ segmentation_type = None
 resize_mode = None
 crop_to_aspect_ratio = False
 
-artifacts_dir = os.path.join(my_app.data_dir, "artifacts")
+data_dir = sly.app.get_synced_data_dir()
+artifacts_dir = os.path.join(data_dir, "artifacts")
 info_dir = os.path.join(artifacts_dir, "info")
 sly.fs.mkdir(info_dir)
 checkpoints_dir = os.path.join(artifacts_dir, "checkpoints")
