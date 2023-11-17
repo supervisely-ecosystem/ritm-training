@@ -159,11 +159,9 @@ class ISTrainer(object):
 
         log_prefix = 'Train' + self.task_prefix.capitalize()
         if self.is_master:
-            tbar = tqdm(self.train_data, total=len(self.train_data), file=self.tqdm_out, ncols=100)
+            tbar = tqdm(self.train_data, file=self.tqdm_out, ncols=100)
         else:
             tbar = self.train_data
-
-        sly.logger.debug("tbar CREATED")
 
         if self.progress_iter is None:
             self.progress_iter = sly.Progress("Iterations", total_cnt=len(tbar))
@@ -254,11 +252,9 @@ class ISTrainer(object):
         log_prefix = 'Val' + self.task_prefix.capitalize()
 
         if self.is_master:
-            tbar = tqdm(self.val_data, total=len(self.val_data), file=self.tqdm_out, ncols=100)
+            tbar = tqdm(self.val_data, file=self.tqdm_out, ncols=100)
         else:
             tbar = self.val_data
-        
-        sly.logger.debug("val tbar CREATED")
 
         for metric in self.val_metrics:
             metric.reset_epoch_stats()
