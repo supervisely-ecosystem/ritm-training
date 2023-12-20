@@ -1,3 +1,4 @@
 imagecorruptions==1.1.2
-supervisely[apps]==6.72.216
+#supervisely[apps]==6.72.216
+git+https://github.com/supervisely/supervisely.git@add-progress-to-download_input
 # supervisely[apps]==6.72.67 
