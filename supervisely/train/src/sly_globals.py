@@ -44,6 +44,8 @@ workspace_id = int(os.environ['context.workspaceId'])
 project_id = int(os.environ['modal.state.slyProjectId'])
 
 project_info = api.project.get_info_by_id(project_id)
+if project_info is None:
+    raise RuntimeError(f"Project with id={project_id} not found")
 project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
 project_dir = os.path.join(my_app.data_dir, "sly_project")
 project_dir_seg = os.path.join(my_app.data_dir, "sly_seg_project")
