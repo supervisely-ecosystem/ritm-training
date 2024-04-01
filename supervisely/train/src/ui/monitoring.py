@@ -181,7 +181,7 @@ def train(api: sly.Api, task_id, context, state, app_logger):
             ]
             g.api.app.set_fields(g.task_id, fields)
 
-            app_logger.info("ℹ Please press 'Finish Training' button to upload training results to Team Files.")
+            app_logger.info("ℹ️ Please press 'Finish Training' button to upload training results to Team Files.")
             g.my_app.show_modal_window(
                 "Training is finished, app is still running and you can preview predictions dynamics over time."
                 "Please stop app manually to upload the training results to Team Files."
