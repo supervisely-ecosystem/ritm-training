@@ -42,7 +42,7 @@ def save_checkpoint(net, checkpoints_path, epoch=None, prefix='', verbose=True, 
     checkpoint_path = checkpoints_path / checkpoint_name
     if verbose:
         logger.info(
-            'Save temp checkpoint (will be removed if training finishes successfully): ',
+            'Save temp checkpoint (will be removed if training finishes successfully): '
             f'{str(checkpoint_path)}'
         )
 
