@@ -39,9 +39,9 @@ task_id = my_app.task_id
 # @TODO: for debug
 # sly.fs.clean_dir(my_app.data_dir)
 
-team_id = int(os.environ['context.teamId'])
-workspace_id = int(os.environ['context.workspaceId'])
-project_id = int(os.environ['modal.state.slyProjectId'])
+team_id = int(os.environ["context.teamId"])
+workspace_id = int(os.environ["context.workspaceId"])
+project_id = int(os.environ["modal.state.slyProjectId"])
 
 project_info = api.project.get_info_by_id(project_id)
 if project_info is None:
@@ -58,6 +58,10 @@ crop_to_aspect_ratio = False
 
 data_dir = sly.app.get_synced_data_dir()
 artifacts_dir = os.path.join(data_dir, "artifacts")
+print(
+    "Temp directory for training artifacts (will be removed after successful training): "
+    f"{artifacts_dir}"
+)
 info_dir = os.path.join(artifacts_dir, "info")
 sly.fs.mkdir(info_dir)
 checkpoints_dir = os.path.join(artifacts_dir, "checkpoints")

@@ -80,7 +80,8 @@ def upload_artifacts_and_log_progress():
 
     remote_dir = f"/RITM_training/{g.task_id}_{g.project_info.name}"
     res_dir = g.api.file.upload_directory(g.team_id, g.artifacts_dir, remote_dir, progress_size_cb=progress_cb)
-    
+    print(f"✅ Training artifacts successfully uploaded to: {res_dir}")
+
     return res_dir
 
 
@@ -180,9 +181,11 @@ def train(api: sly.Api, task_id, context, state, app_logger):
             ]
             g.api.app.set_fields(g.task_id, fields)
 
+            app_logger.info("ℹ Please press 'Finish Training' button to upload training results to Team Files.")
             g.my_app.show_modal_window(
-            "Training is finished, app is still running and you can preview predictions dynamics over time."
-            "Please stop app manually once you are finished with it.")
+                "Training is finished, app is still running and you can preview predictions dynamics over time."
+                "Please stop app manually to upload the training results to Team Files."
+            )
         except Exception as e:
             torch.cuda.empty_cache()
             g.api.app.set_field(task_id, "state.started", False)
