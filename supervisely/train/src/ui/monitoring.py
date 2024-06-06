@@ -63,7 +63,7 @@ def _save_link_to_ui(local_dir, app_url):
         print(app_url, file=text_file)
 
 
-def upload_artifacts_and_log_progress():
+def upload_artifacts_and_log_progress(task_type:str):
     _save_link_to_ui(g.artifacts_dir, g.my_app.app_url)
 
     def upload_monitor(monitor, api: sly.Api, task_id, progress: sly.Progress):
@@ -78,8 +78,24 @@ def upload_artifacts_and_log_progress():
     progress = sly.Progress("Upload directory with training artifacts to Team Files", dir_size, is_size=True)
     progress_cb = partial(upload_monitor, api=g.api, task_id=g.task_id, progress=progress)
 
-    remote_dir = f"/RITM_training/{g.task_id}_{g.project_info.name}"
-    res_dir = g.api.file.upload_directory(g.team_id, g.artifacts_dir, remote_dir, progress_size_cb=progress_cb)
+    
+    model_dir = g.checkpoint.get_model_dir()
+    remote_artifacts_dir = f"{model_dir}/{g.task_id}_{g.project_info.name}"
+    remote_weights_dir = os.path.join(remote_artifacts_dir, g.checkpoint.weights_dir)
+    remote_config_path = os.path.join(remote_weights_dir, g.checkpoint.config_file)
+    
+    res_dir = g.api.file.upload_directory(g.team_id, g.artifacts_dir, remote_artifacts_dir, progress_size_cb=progress_cb)
+    
+    # generate metadata file
+    g.checkpoint.generate_sly_metadata(
+        app_name=g.checkpoint.app_name,
+        session_id=g.task_id,
+        session_path=remote_artifacts_dir,
+        weights_dir=remote_weights_dir,
+        training_project_name=g.project_info.name,
+        task_type=task_type,
+        config_path=remote_config_path,
+    )
     print(f"✅ Training artifacts successfully uploaded to: {res_dir}")
 
     return res_dir
@@ -199,7 +215,8 @@ def train(api: sly.Api, task_id, context, state, app_logger):
         ]
         g.api.app.set_fields(g.task_id, fields)
 
-        remote_dir = upload_artifacts_and_log_progress()
+        task_type = state.get("segmentationType", None)
+        remote_dir = upload_artifacts_and_log_progress(task_type)
         file_info = api.file.get_info_by_path(g.team_id, os.path.join(remote_dir, _open_lnk_name))
         api.task.set_output_directory(task_id, file_info.id, remote_dir)
 

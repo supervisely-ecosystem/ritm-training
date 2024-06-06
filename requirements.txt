@@ -1,2 +1,4 @@
 imagecorruptions==1.1.2
-supervisely[apps]==6.72.220
+# supervisely[apps]==6.72.220
+git+https://github.com/supervisely/supervisely.git@optimize-checkpoint
+
