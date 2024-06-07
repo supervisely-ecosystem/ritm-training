@@ -8,11 +8,13 @@ import sys
 import shutil
 from train import main as train_model
 from sly_train_args import init_script_arguments
+
 # it is needed to use losses
 from isegm.model.losses import *
 import torch
 
 _open_lnk_name = "open_app.lnk"
+
 
 def init(data, state):
     init_progress("Epoch", data)
@@ -29,7 +31,7 @@ def init(data, state):
     state["preparingData"] = False
 
     state["started"] = False
-    state['finishTrain'] = False
+    state["finishTrain"] = False
     state["continueTrain"] = False
     state["preparingData"] = False
     data["outputName"] = None
@@ -37,23 +39,45 @@ def init(data, state):
 
     state["addEpochs"] = 5
 
+
 def init_charts(data, state):
     state["smoothing"] = 0.6
 
     g.sly_charts = {
-        'lr': Chart(g.task_id, g.api, "data.chartLR",
-                                    title="LR", series_names=["LR"],
-                                    ydecimals=9, xdecimals=2),
-        'loss': Chart(g.task_id, g.api, "data.chartLoss",
-                                      title="Train Loss", series_names=["train"],
-                                      smoothing=state["smoothing"], ydecimals=8, xdecimals=2),
-        'val_iou': Chart(g.task_id, g.api, "data.chartIoU",
-                                        title="Val Adaptive IoU", series_names=["val"],
-                                        smoothing=state["smoothing"], ydecimals=6, xdecimals=2)
+        "lr": Chart(
+            g.task_id,
+            g.api,
+            "data.chartLR",
+            title="LR",
+            series_names=["LR"],
+            ydecimals=9,
+            xdecimals=2,
+        ),
+        "loss": Chart(
+            g.task_id,
+            g.api,
+            "data.chartLoss",
+            title="Train Loss",
+            series_names=["train"],
+            smoothing=state["smoothing"],
+            ydecimals=8,
+            xdecimals=2,
+        ),
+        "val_iou": Chart(
+            g.task_id,
+            g.api,
+            "data.chartIoU",
+            title="Val Adaptive IoU",
+            series_names=["val"],
+            smoothing=state["smoothing"],
+            ydecimals=6,
+            xdecimals=2,
+        ),
     }
 
     for current_chart in g.sly_charts.values():
         current_chart.init_data(data)
+
 
 def _save_link_to_ui(local_dir, app_url):
     # save report to file *.lnk (link to report)
@@ -63,7 +87,7 @@ def _save_link_to_ui(local_dir, app_url):
         print(app_url, file=text_file)
 
 
-def upload_artifacts_and_log_progress(task_type:str):
+def upload_artifacts_and_log_progress(task_type: str):
     _save_link_to_ui(g.artifacts_dir, g.my_app.app_url)
 
     def upload_monitor(monitor, api: sly.Api, task_id, progress: sly.Progress):
@@ -75,24 +99,27 @@ def upload_artifacts_and_log_progress(task_type:str):
         _update_progress_ui("UploadDir", g.api, g.task_id, progress)
 
     dir_size = sly.fs.get_directory_size(g.artifacts_dir)
-    progress = sly.Progress("Upload directory with training artifacts to Team Files", dir_size, is_size=True)
+    progress = sly.Progress(
+        "Upload directory with training artifacts to Team Files", dir_size, is_size=True
+    )
     progress_cb = partial(upload_monitor, api=g.api, task_id=g.task_id, progress=progress)
 
-    
-    model_dir = g.checkpoint.get_model_dir()
+    model_dir = g.sly_ritm.framework_folder
     remote_artifacts_dir = f"{model_dir}/{g.task_id}_{g.project_info.name}"
-    remote_weights_dir = os.path.join(remote_artifacts_dir, g.checkpoint.weights_dir)
-    remote_config_path = os.path.join(remote_weights_dir, g.checkpoint.config_file)
-    
-    res_dir = g.api.file.upload_directory(g.team_id, g.artifacts_dir, remote_artifacts_dir, progress_size_cb=progress_cb)
-    
+    remote_weights_dir = os.path.join(remote_artifacts_dir, g.sly_ritm.weights_folder)
+    remote_config_path = os.path.join(remote_weights_dir, g.sly_ritm.config_file)
+
+    res_dir = g.api.file.upload_directory(
+        g.team_id, g.artifacts_dir, remote_artifacts_dir, progress_size_cb=progress_cb
+    )
+
     # generate metadata file
-    g.checkpoint.generate_sly_metadata(
-        app_name=g.checkpoint.app_name,
-        session_id=g.task_id,
-        session_path=remote_artifacts_dir,
-        weights_path=remote_weights_dir,
-        training_project_name=g.project_info.name,
+    g.sly_ritm.generate_metadata(
+        app_name=g.sly_ritm.app_name,
+        task_id=g.task_id,
+        artifacts_folder=remote_artifacts_dir,
+        weights_folder=remote_weights_dir,
+        project_name=g.project_info.name,
         task_type=task_type,
         config_path=remote_config_path,
     )
@@ -106,7 +133,10 @@ def init_cfg(state):
         g.train_cfg["num_epochs"] += state["addEpochs"]
     else:
         g.train_cfg["num_epochs"] = state["epochs"]
-    g.train_cfg["input_size"] = (state["input_size"]["value"]["height"], state["input_size"]["value"]["width"])
+    g.train_cfg["input_size"] = (
+        state["input_size"]["value"]["height"],
+        state["input_size"]["value"]["width"],
+    )
     g.train_cfg["checkpoint_interval"] = state["checkpointInterval"]
     g.train_cfg["visualization_interval"] = state["visualizationInterval"]
     g.train_cfg["max_num_points"] = state["maxNumPoints"]
@@ -123,7 +153,6 @@ def init_cfg(state):
         g.train_cfg["optim_params"]["momentum"] = state["momentum"]
         g.train_cfg["optim_params"]["nesterov"] = state["nesterov"]
 
-
     g.train_cfg["instance_loss"] = getattr(sys.modules[__name__], state["instanceLoss"])
     g.train_cfg["instance_aux_loss"] = getattr(sys.modules[__name__], state["instanceAuxLoss"])
     g.train_cfg["instance_loss_weight"] = state["instanceLossWeight"]
@@ -138,12 +167,12 @@ def get_preprocessing_pipelines():
     import augs
 
     width, height = g.train_cfg["input_size"][1], g.train_cfg["input_size"][0]
-    aspect_ratio = width/height
+    aspect_ratio = width / height
 
     if g.resize_mode == "Random Crop":
         resize_augs = [
             iaa.PadToFixedSize(width=width, height=height),
-            iaa.CropToFixedSize(width=width, height=height)
+            iaa.CropToFixedSize(width=width, height=height),
         ]
     elif g.resize_mode in ["Whole Image", "Crop to fit an instance object"]:
         resize_augs = []
@@ -155,7 +184,9 @@ def get_preprocessing_pipelines():
 
     if augs.augs_config_path is not None:
         augs_config = sly.json.load_json_file(augs.augs_config_path)
-        train_augs = sly.imgaug_utils.build_pipeline(augs_config["pipeline"], random_order=augs_config["random_order"])
+        train_augs = sly.imgaug_utils.build_pipeline(
+            augs_config["pipeline"], random_order=augs_config["random_order"]
+        )
     else:
         train_augs = iaa.Sequential([])
 
@@ -176,9 +207,10 @@ def train(api: sly.Api, task_id, context, state, app_logger):
             shutil.rmtree(g.project_dir_seg)
         os.makedirs(g.project_dir_seg)
         sly.Project.to_segmentation_task(
-            g.project_dir, g.project_dir_seg,
+            g.project_dir,
+            g.project_dir_seg,
             target_classes=state["selectedClasses"],
-            segmentation_type='instance'
+            segmentation_type="instance",
         )
         g.project_seg = sly.Project(g.project_dir_seg, sly.OpenMode.READ)
         g.seg_project_meta = g.project_seg.meta
@@ -193,11 +225,13 @@ def train(api: sly.Api, task_id, context, state, app_logger):
 
             fields = [
                 {"field": "state.started", "payload": False},
-                {"field": "state.continueTrain", "payload": True}
+                {"field": "state.continueTrain", "payload": True},
             ]
             g.api.app.set_fields(g.task_id, fields)
 
-            app_logger.info("ℹ️ Please press 'Finish Training' button to upload training results to Team Files.")
+            app_logger.info(
+                "ℹ️ Please press 'Finish Training' button to upload training results to Team Files."
+            )
             g.my_app.show_modal_window(
                 "Training is finished, app is still running and you can preview predictions dynamics over time."
                 "Please stop app manually to upload the training results to Team Files."
