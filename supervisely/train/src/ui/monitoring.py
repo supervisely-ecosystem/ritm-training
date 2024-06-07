@@ -107,7 +107,6 @@ def upload_artifacts_and_log_progress(task_type: str):
     model_dir = g.sly_ritm.framework_folder
     remote_artifacts_dir = f"{model_dir}/{g.task_id}_{g.project_info.name}"
     remote_weights_dir = os.path.join(remote_artifacts_dir, g.sly_ritm.weights_folder)
-    remote_config_path = os.path.join(remote_weights_dir, g.sly_ritm.config_file)
 
     res_dir = g.api.file.upload_directory(
         g.team_id, g.artifacts_dir, remote_artifacts_dir, progress_size_cb=progress_cb
@@ -122,7 +121,7 @@ def upload_artifacts_and_log_progress(task_type: str):
         weights_ext=g.sly_ritm.weights_ext,
         project_name=g.project_info.name,
         task_type=task_type,
-        config_path=remote_config_path,
+        config_path=None,
     )
     print(f"✅ Training artifacts successfully uploaded to: {res_dir}")
 
