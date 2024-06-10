@@ -1,3 +1,9 @@
+# git+https://github.com/supervisely/supervisely.git@some-test-branch
+
+imagecorruptions==1.1.2
+supervisely==6.73.100
+supervisely[apps]==6.73.100
+
 scipy
 numpy
 Cython
@@ -17,5 +23,3 @@ tensorboard
 future
 cffi
 ninja
-supervisely==6.36.0
-supervisely[apps]==6.36.0
