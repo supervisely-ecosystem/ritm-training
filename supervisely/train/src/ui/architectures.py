@@ -100,7 +100,10 @@ def select_model(api: sly.Api, task_id, context, state, app_logger):
                              f"Supported: '.pth'")
 
         # get architecture type from previous UI state
-        prev_state_path_remote = os.path.join(str(Path(weights_path_remote).parents[1]), "info/ui_state.json")
+        sly.logger.info(f"Weights path remote: {weights_path_remote}")
+        splitted_weights_path = str(Path(weights_path_remote).parents[1]
+        sly.logger.info(f"Splitted weights path: {splitted_weights_path}")
+        prev_state_path_remote = os.path.join(splitted_weights_path, "info/ui_state.json")
         prev_state_path = os.path.join(g.my_app.data_dir, "ui_state.json")
         api.file.download(g.team_id, prev_state_path_remote, prev_state_path)
         prev_state = sly.json.load_json_file(prev_state_path)
