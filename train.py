@@ -17,7 +17,14 @@ def main():
         sly.logger.debug(
             f"Arguments do not contain temp_model_path field, using model_path: {args.model_path}"
         )
-        model_script = load_module(args.model_path)
+        if not args.model_path:
+            sly.logger.warning(
+                f"Argument model_path is empty. Will try to read custom_model_path: {args.custom_model_path}"
+            )
+            model_path = args.custom_model_path
+        else:
+            model_path = args.model_path
+        model_script = load_module(model_path)
 
     model_base_name = getattr(model_script, "MODEL_NAME", None)
 
@@ -36,6 +43,9 @@ def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("model_path", type=str, help="Path to the model script.")
+    parser.add_argument(
+        "--custom_model_path", type=str, help="Path to the custom model script.", default=""
+    )
 
     parser.add_argument(
         "--exp-name",
