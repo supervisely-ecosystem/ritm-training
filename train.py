@@ -16,7 +16,9 @@ def main():
     else:
         sly.logger.debug("Arguments do not contain temp_model_path field...")
         model_path = args.model_path
-        sly.logger.debug(f"Model path from arguments: {model_path}")
+        sly.logger.debug(
+            f"Model path from arguments: {model_path}, type of model_path: {type(model_path)}"
+        )
         if model_path is None or model_path == "":
             sly.logger.warning(
                 f"Argument model_path is empty in args. Will try to read custom_model_path: {args.custom_model_path}"
