@@ -14,16 +14,15 @@ def main():
         sly.logger.debug(f"Arguments contain temp_model_path field, value: {args.temp_model_path}")
         model_script = load_module(args.temp_model_path)
     else:
-        sly.logger.debug(
-            f"Arguments do not contain temp_model_path field, using model_path: {args.model_path}"
-        )
-        if not args.model_path:
+        sly.logger.debug("Arguments do not contain temp_model_path field...")
+        model_path = args.model_path
+        sly.logger.debug(f"Model path from arguments: {model_path}")
+        if not model_path:
             sly.logger.warning(
-                f"Argument model_path is empty. Will try to read custom_model_path: {args.custom_model_path}"
+                f"Argument model_path is empty in args. Will try to read custom_model_path: {args.custom_model_path}"
             )
             model_path = args.custom_model_path
-        else:
-            model_path = args.model_path
+
         model_script = load_module(model_path)
 
     model_base_name = getattr(model_script, "MODEL_NAME", None)
