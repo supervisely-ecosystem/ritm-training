@@ -158,7 +158,7 @@ def load_config(model_path):
     if config_path.exists():
         cfg = load_config_file(config_path)
     else:
-        sly.logger.warning(f"Config file {config_path} not found, will use default config")
+        print(f"Config file {config_path} not found, will use default config")
         default_config_path = os.path.join(os.getcwd(), "config.yml")
         if not os.path.isfile(default_config_path):
             raise FileNotFoundError(f"Default config file {default_config_path} not found")
