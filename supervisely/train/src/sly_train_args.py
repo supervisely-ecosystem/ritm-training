@@ -15,5 +15,5 @@ def init_script_arguments(state):
         sys.argv.extend(["--resume-exp", "exp"])
 
     if g.temp_model_path is not None:
-        sly.logger.debug(f"Adding --custom_model_path argument with value: {g.temp_model_path}")
-        sys.argv.extend(["--custom_model_path", g.temp_model_path])
+        sly.logger.debug(f"Adding --custom-model-path argument with value: {g.temp_model_path}")
+        sys.argv.extend(["--custom-model-path", g.temp_model_path])

@@ -43,7 +43,7 @@ def parse_args():
 
     parser.add_argument("model_path", type=str, help="Path to the model script.")
     parser.add_argument(
-        "--custom_model_path", type=str, help="Path to the custom model script.", default=""
+        "--custom-model-path", type=str, help="Path to the custom model script.", default=""
     )
 
     parser.add_argument(
