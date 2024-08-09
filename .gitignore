@@ -10,3 +10,4 @@ supervisely/train/secret_debug.env
 data
 app_cache
 /test
+.venv/

@@ -3,6 +3,7 @@ from pathlib import Path
 import sly_globals as g
 import supervisely as sly
 
+
 def get_models_list():
     return [
         {
@@ -14,7 +15,7 @@ def get_models_list():
             "sbd_NoC_90": "5.43",
             "pascalVOC_NoC_85": "2.51",
             "COCO_MVal_90": "4.39",
-            "params": "38.8 MB"
+            "params": "38.8 MB",
         },
         {
             "config": "hrnet18s_itermask_3p.py",
@@ -25,7 +26,7 @@ def get_models_list():
             "sbd_NoC_90": "6.48",
             "pascalVOC_NoC_85": "2.57",
             "COCO_MVal_90": "3.33",
-            "params": "16.5 MB"
+            "params": "16.5 MB",
         },
         {
             "config": "hrnet18_itermask_3p.py",
@@ -36,7 +37,7 @@ def get_models_list():
             "sbd_NoC_90": "6.06",
             "pascalVOC_NoC_85": "2.28",
             "COCO_MVal_90": "2.98",
-            "params": "38.8 MB"
+            "params": "38.8 MB",
         },
         {
             "config": "hrnet32_itermask_3p.py",
@@ -47,8 +48,8 @@ def get_models_list():
             "sbd_NoC_90": "5.71",
             "pascalVOC_NoC_85": "2.57",
             "COCO_MVal_90": "2.97",
-            "params": "119 MB"
-        }
+            "params": "119 MB",
+        },
     ]
 
 
@@ -95,18 +96,61 @@ def restart(data, state):
 def select_model(api: sly.Api, task_id, context, state, app_logger):
     if state["weightsInitialization"] == "custom":
         weights_path_remote = state["weightsPath"]
+        sly.logger.debug(f"App uses custom weights: {weights_path_remote}")
         if not weights_path_remote.endswith(".pth"):
-            raise ValueError(f"Weights file has unsupported extension {sly.fs.get_file_ext(weights_path_remote)}. "
-                             f"Supported: '.pth'")
+            raise ValueError(
+                f"Weights file has unsupported extension {sly.fs.get_file_ext(weights_path_remote)}. "
+                f"Supported: '.pth'"
+            )
 
         # get architecture type from previous UI state
-        prev_state_path_remote = os.path.join(str(Path(weights_path_remote).parents[1]), "info/ui_state.json")
+        weights_parent_directory = str(Path(weights_path_remote).parents[1])
+        sly.logger.debug(f"weights_parent_directory: {weights_parent_directory}")
+
+        items_in_parent_directory = api.file.listdir(g.team_id, weights_parent_directory)
+        sly.logger.debug(f"items_in_parent_directory: {items_in_parent_directory}")
+
+        # Find first *.py file in the items_in_parent_directory.
+        model_config_remote_path = None
+        for item in items_in_parent_directory:
+            if item.endswith(".py"):
+                model_config_remote_path = os.path.join(weights_parent_directory, item)
+                sly.logger.debug(f"Found model config: {model_config_remote_path}")
+                break
+        if not model_config_remote_path:
+            raise FileNotFoundError(f"Model config not found in {weights_parent_directory}")
+
+        # Download model config to local directory
+        file_name = sly.fs.get_file_name_with_ext(model_config_remote_path)
+        model_config_local_path = os.path.join(
+            g.root_models_dir,
+            "iter_mask_supervisely",
+            file_name,
+        )
+
+        api.file.download(g.team_id, model_config_remote_path, model_config_local_path)
+        sly.logger.debug(f"Model config downloaded to: {model_config_local_path}")
+
+        g.temp_model_path = model_config_local_path
+        sly.logger.debug(f"Save model config path to globals: {g.temp_model_path}")
+
+        prev_state_path_remote = os.path.join(weights_parent_directory, "info/ui_state.json")
+        sly.logger.debug(f"prev_state_path_remote: {prev_state_path_remote}")
+
         prev_state_path = os.path.join(g.my_app.data_dir, "ui_state.json")
         api.file.download(g.team_id, prev_state_path_remote, prev_state_path)
+        sly.logger.debug(f"Prev state downloaded to: {prev_state_path}")
+
         prev_state = sly.json.load_json_file(prev_state_path)
         api.task.set_field(g.task_id, "state.selectedModel", prev_state["selectedModel"])
+        sly.logger.debug(f"Readed json file: {prev_state}")
+        sly.logger.debug(f"Current state: {state}")
 
-        g.local_weights_path = os.path.join(g.models_source_dir, sly.fs.get_file_name_with_ext(weights_path_remote))
+        g.local_weights_path = os.path.join(
+            g.models_source_dir, sly.fs.get_file_name_with_ext(weights_path_remote)
+        )
+        api.file.download(g.team_id, weights_path_remote, g.local_weights_path)
+        sly.logger.debug(f"Weights downloaded to: {g.local_weights_path}")
 
     else:
         weights_file = None
@@ -116,7 +160,9 @@ def select_model(api: sly.Api, task_id, context, state, app_logger):
                 weights_file = model["weightsFile"]
                 config_file = model["config"]
         g.local_weights_path = os.path.join(g.models_source_dir, weights_file)
-        g.model_config_local_path = os.path.join(g.root_source_dir, "models", "iter_mask_supervisely", config_file)
+        g.model_config_local_path = os.path.join(
+            g.root_source_dir, "models", "iter_mask_supervisely", config_file
+        )
 
     fields = [
         {"field": "data.done5", "payload": True},
