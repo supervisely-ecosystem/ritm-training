@@ -160,7 +160,7 @@ def load_config(model_path):
     else:
         print(f"Config file {config_path} not found, will use default config")
         current_dir = Path(__file__).parent
-        root_dir = current_dir.parents[2]
+        root_dir = current_dir.parents[1]
         print(f"root_dir: {root_dir}")
         default_config_path = os.path.join(root_dir, "config.yml")
         if not os.path.isfile(default_config_path):
