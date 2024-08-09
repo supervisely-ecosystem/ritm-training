@@ -9,9 +9,14 @@ import supervisely as sly
 
 def main():
     args = parse_args()
+    sly.logger.debug(f"Arguments parsed: {args}")
     if args.temp_model_path:
+        sly.logger.debug(f"Arguments contain temp_model_path field, value: {args.temp_model_path}")
         model_script = load_module(args.temp_model_path)
     else:
+        sly.logger.debug(
+            f"Arguments do not contain temp_model_path field, using model_path: {args.model_path}"
+        )
         model_script = load_module(args.model_path)
 
     model_base_name = getattr(model_script, "MODEL_NAME", None)
