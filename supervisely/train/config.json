@@ -14,7 +14,7 @@
 	"need_gpu": true,
 	"gpu": "required",
 	"docker_image": "supervisely/ritm-training:1.1.5",
-	"instance_version": "6.4.57",
+	"instance_version": "6.9.22",
 	"main_script": "supervisely/train/src/main.py",
 	"gui_template": "supervisely/train/src/gui.html",
 	"task_location": "workspace_tasks",
