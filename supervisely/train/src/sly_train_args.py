@@ -8,8 +8,8 @@ def init_script_arguments(state):
     sys.argv = [sys.argv[0]]
 
     if g.temp_model_path is not None:
-        sys.argv.extend(["--model-path", g.temp_model_path])
-        sly.logger.debug(f"Added --model-path argument with value {g.temp_model_path}")
+        sys.argv.append(g.temp_model_path)
+        sly.logger.debug(f"Added model path argument with value {g.temp_model_path}")
 
     sys.argv.append(g.model_config_local_path)
     sys.argv.extend(["--workers", str(state["workersPerGPU"])])
