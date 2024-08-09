@@ -16,6 +16,7 @@ import sly_globals as g
 
 
 def init_experiment(args, model_name):
+    print(f"Model name: {model_name}")
     model_path = Path(args.model_path)
     print(f"model_path: {model_path}")
     ftree = get_model_family_tree(model_path, model_name=model_name)
