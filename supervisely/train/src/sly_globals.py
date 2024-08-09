@@ -81,4 +81,5 @@ sly_charts = {}
 train_cfg = {}
 
 root_models_dir = "/models"
+iter_mask_supervisely_dir = os.path.join(root_models_dir, "iter_mask_supervisely")
 temp_model_path = None
