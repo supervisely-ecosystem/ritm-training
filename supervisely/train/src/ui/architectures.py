@@ -132,8 +132,9 @@ def select_model(api: sly.Api, task_id, context, state, app_logger):
         sly.logger.debug(f"Model config downloaded to: {model_config_local_path}")
 
         # Copy the model config to the /ritm_models directory
-        sly.fs.copy_file(model_config_local_path, os.path.join(g.models_source_dir, file_name))
-        sly.logger.debug(f"Model config copied to: {model_config_local_path}")
+        copy_path = os.path.join(g.models_source_dir, file_name)
+        sly.fs.copy_file(model_config_local_path, copy_path)
+        sly.logger.debug(f"Model config copied to: {copy_path}")
 
         g.temp_model_path = model_config_local_path
         sly.logger.debug(f"Save model config path to globals: {g.temp_model_path}")
