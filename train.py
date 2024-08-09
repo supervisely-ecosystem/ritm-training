@@ -19,7 +19,7 @@ def main():
         sly.logger.debug(
             f"Model path from arguments: {model_path}, type of model_path: {type(model_path)}"
         )
-        if model_path is None or model_path == "":
+        if model_path is None or model_path == "" or model_path == "None":
             sly.logger.warning(
                 f"Argument model_path is empty in args. Will try to read custom_model_path: {args.custom_model_path}"
             )
