@@ -122,7 +122,9 @@ def select_model(api: sly.Api, task_id, context, state, app_logger):
 
         # Download model config to local directory
         model_config_local_path = os.path.join(
-            g.root_models_dir, sly.fs.get_file_name_with_ext(model_config_remote_path)
+            g.root_models_dir,
+            "iter_mask_supervisely",
+            sly.fs.get_file_name_with_ext(model_config_remote_path),
         )
         api.file.download(g.team_id, model_config_remote_path, model_config_local_path)
         sly.logger.debug(f"Model config downloaded to: {model_config_local_path}")
