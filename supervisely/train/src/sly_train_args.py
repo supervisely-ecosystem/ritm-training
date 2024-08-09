@@ -13,8 +13,8 @@ def init_script_arguments(state):
     sys.argv.extend(["--weights", g.local_weights_path])
 
     if g.temp_model_path is not None:
-        sys.argv.extend(["--temp-model-path", g.temp_model_path])
-        sly.logger.debug(f"Added --temp-model-path argument with value {g.temp_model_path}")
+        sys.argv.extend(["--model-path", g.temp_model_path])
+        sly.logger.debug(f"Added --model-path argument with value {g.temp_model_path}")
 
     if state["continueTrain"]:
         sys.argv.extend(["--resume-exp", "exp"])
