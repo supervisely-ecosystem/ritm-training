@@ -104,9 +104,33 @@ def select_model(api: sly.Api, task_id, context, state, app_logger):
             )
 
         # get architecture type from previous UI state
-        prev_state_path_remote = os.path.join(
-            str(Path(weights_path_remote).parents[1]), "info/ui_state.json"
+        weights_parent_directory = str(Path(weights_path_remote).parents[1])
+        sly.logger.debug(f"weights_parent_directory: {weights_parent_directory}")
+
+        items_in_parent_directory = api.file.listdir(g.team_id, weights_parent_directory)
+        sly.logger.debug(f"items_in_parent_directory: {items_in_parent_directory}")
+
+        # Find first *.py file in the items_in_parent_directory.
+        model_config_remote_path = None
+        for item in items_in_parent_directory:
+            if item.endswith(".py"):
+                model_config_remote_path = os.path.join(weights_parent_directory, item)
+                sly.logger.debug(f"Found model config: {model_config_remote_path}")
+                break
+        if not model_config_remote_path:
+            raise FileNotFoundError(f"Model config not found in {weights_parent_directory}")
+
+        # Download model config to local directory
+        model_config_local_path = os.path.join(
+            g.models_source_dir, sly.fs.get_file_name_with_ext(model_config_remote_path)
         )
+        api.file.download(g.team_id, model_config_remote_path, model_config_local_path)
+        sly.logger.debug(f"Model config downloaded to: {model_config_local_path}")
+
+        # Save path to state as temp_model_path.
+        state["temp_model_path"] = model_config_local_path
+
+        prev_state_path_remote = os.path.join(weights_parent_directory, "info/ui_state.json")
         sly.logger.debug(f"prev_state_path_remote: {prev_state_path_remote}")
 
         prev_state_path = os.path.join(g.my_app.data_dir, "ui_state.json")

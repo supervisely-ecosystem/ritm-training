@@ -11,5 +11,11 @@ def init_script_arguments(state):
     sys.argv.extend(["--workers", str(state["workersPerGPU"])])
     sys.argv.extend(["--batch-size", str(state["batchSizePerGPU"])])
     sys.argv.extend(["--weights", g.local_weights_path])
+
+    temp_model_path = state.get("temp_model_path")
+    if temp_model_path is not None:
+        sys.argv.extend(["--temp-model-path", temp_model_path])
+        sly.logger.debug(f"Added --temp-model-path argument with value {temp_model_path}")
+
     if state["continueTrain"]:
         sys.argv.extend(["--resume-exp", "exp"])
