@@ -79,3 +79,5 @@ model_config_local_path = None
 
 sly_charts = {}
 train_cfg = {}
+
+temp_model_path = None

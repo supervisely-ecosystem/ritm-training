@@ -127,8 +127,8 @@ def select_model(api: sly.Api, task_id, context, state, app_logger):
         api.file.download(g.team_id, model_config_remote_path, model_config_local_path)
         sly.logger.debug(f"Model config downloaded to: {model_config_local_path}")
 
-        # Save path to state as temp_model_path.
-        state["temp_model_path"] = model_config_local_path
+        g.temp_model_path = model_config_local_path
+        sly.logger.debug(f"Save model config path to globals: {g.temp_model_path}")
 
         prev_state_path_remote = os.path.join(weights_parent_directory, "info/ui_state.json")
         sly.logger.debug(f"prev_state_path_remote: {prev_state_path_remote}")
