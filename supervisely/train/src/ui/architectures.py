@@ -131,11 +131,6 @@ def select_model(api: sly.Api, task_id, context, state, app_logger):
         api.file.download(g.team_id, model_config_remote_path, model_config_local_path)
         sly.logger.debug(f"Model config downloaded to: {model_config_local_path}")
 
-        # Copy the model config to the /ritm_models directory
-        copy_path = os.path.join(g.models_source_dir, file_name)
-        sly.fs.copy_file(model_config_local_path, copy_path)
-        sly.logger.debug(f"Model config copied to: {copy_path}")
-
         g.temp_model_path = model_config_local_path
         sly.logger.debug(f"Save model config path to globals: {g.temp_model_path}")
 
@@ -154,6 +149,8 @@ def select_model(api: sly.Api, task_id, context, state, app_logger):
         g.local_weights_path = os.path.join(
             g.models_source_dir, sly.fs.get_file_name_with_ext(weights_path_remote)
         )
+        api.file.download(g.team_id, weights_path_remote, g.local_weights_path)
+        sly.logger.debug(f"Weights downloaded to: {g.local_weights_path}")
 
     else:
         weights_file = None
