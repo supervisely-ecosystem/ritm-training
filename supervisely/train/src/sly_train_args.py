@@ -1,8 +1,10 @@
 import sys
 import sly_globals as g
+import supervisely as sly
 
 
 def init_script_arguments(state):
+    sly.logger.debug(f"Initing script arguments with state: {state}")
     sys.argv = [sys.argv[0]]
     sys.argv.append(g.model_config_local_path)
 
