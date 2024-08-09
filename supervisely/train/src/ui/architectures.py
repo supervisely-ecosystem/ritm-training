@@ -121,11 +121,16 @@ def select_model(api: sly.Api, task_id, context, state, app_logger):
             raise FileNotFoundError(f"Model config not found in {weights_parent_directory}")
 
         # Download model config to local directory
+        file_name = sly.fs.get_file_name_with_ext(model_config_remote_path)
         model_config_local_path = os.path.join(
             g.root_models_dir,
             "iter_mask_supervisely",
-            sly.fs.get_file_name_with_ext(model_config_remote_path),
+            file_name,
         )
+        # Copy the model config to the /ritm_models directory
+        sly.fs.copy_file(model_config_local_path, os.path.join(g.models_source_dir, file_name))
+        sly.logger.debug(f"Model config copied to: {model_config_local_path}")
+
         api.file.download(g.team_id, model_config_remote_path, model_config_local_path)
         sly.logger.debug(f"Model config downloaded to: {model_config_local_path}")
 
