@@ -3,6 +3,7 @@ from functools import partial
 from sly_train_progress import init_progress, _update_progress_ui
 from supervisely.app.v1.widgets.chart import Chart
 import sly_globals as g
+import workflow as w
 import os
 import sys
 import shutil
@@ -113,7 +114,7 @@ def upload_artifacts_and_log_progress(task_type: str):
     )
 
     # generate metadata file
-    g.sly_ritm.generate_metadata(
+    g.ritm_generated_metadata = g.sly_ritm.generate_metadata(
         app_name=g.sly_ritm.app_name,
         task_id=g.task_id,
         artifacts_folder=remote_artifacts_dir,
@@ -222,7 +223,7 @@ def train(api: sly.Api, task_id, context, state, app_logger):
             init_script_arguments(state)
             train_model()
             torch.cuda.empty_cache()
-
+            w.workflow_input(api, g.project_info, state)
             fields = [
                 {"field": "state.started", "payload": False},
                 {"field": "state.continueTrain", "payload": True},
@@ -253,7 +254,7 @@ def train(api: sly.Api, task_id, context, state, app_logger):
         remote_dir = upload_artifacts_and_log_progress(task_type)
         file_info = api.file.get_info_by_path(g.team_id, os.path.join(remote_dir, _open_lnk_name))
         api.task.set_output_directory(task_id, file_info.id, remote_dir)
-
+        w.workflow_output(api, g.ritm_generated_metadata, state)
         fields = [
             {"field": "data.outputUrl", "payload": g.api.file.get_url(file_info.id)},
             {"field": "data.outputName", "payload": remote_dir},

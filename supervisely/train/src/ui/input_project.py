@@ -2,11 +2,12 @@ import os
 import random
 from collections import namedtuple
 import supervisely as sly
+from supervisely.project.download import download_using_cache
 import sly_globals as g
 from sly_train_progress import get_progress_cb, reset_progress, init_progress
 
 progress_index = 1
-_images_infos = None # dataset_name -> image_name -> image_info
+_images_infos = None  # dataset_name -> image_name -> image_info
 _cache_base_filename = os.path.join(g.my_app.data_dir, "images_info")
 _cache_path = _cache_base_filename + ".db"
 _image_id_to_paths = {}
@@ -16,7 +17,9 @@ def init(data, state):
     data["projectId"] = g.project_info.id
     data["projectName"] = g.project_info.name
     data["projectImagesCount"] = g.project_info.items_count
-    data["projectPreviewUrl"] = g.api.image.preview_url(g.project_info.reference_image_url, 100, 100)
+    data["projectPreviewUrl"] = g.api.image.preview_url(
+        g.project_info.reference_image_url, 100, 100
+    )
     init_progress(progress_index, data)
     data["done1"] = False
     state["collapsed1"] = False
@@ -31,10 +34,25 @@ def download(api: sly.Api, task_id, context, state, app_logger):
             pass
         else:
             sly.fs.mkdir(g.project_dir)
-            download_progress = get_progress_cb(progress_index, "Download project", g.project_info.items_count * 2)
-            sly.download_project(g.api, g.project_id, g.project_dir,
-                                 cache=g.my_app.cache, progress_cb=download_progress,
-                                 save_image_info=True)
+            download_progress = get_progress_cb(
+                progress_index, "Download project", g.project_info.items_count * 2
+            )
+            download_using_cache(
+                g.api,
+                g.project_id,
+                g.project_dir,
+                cache=g.my_app.cache,
+                progress_cb=download_progress,
+                save_image_info=True,
+            )
+            # sly.download_project(
+            #     g.api,
+            #     g.project_id,
+            #     g.project_dir,
+            #     cache=g.my_app.cache,
+            #     progress_cb=download_progress,
+            #     save_image_info=True,
+            # )
             reset_progress(progress_index)
 
         g.project_fs = sly.Project(g.project_dir, sly.OpenMode.READ)
@@ -55,7 +73,7 @@ def get_image_info_from_cache(dataset_name, item_name):
     dataset_fs = g.project_fs.datasets.get(dataset_name)
     img_info_path = dataset_fs.get_img_info_path(item_name)
     image_info_dict = sly.json.load_json_file(img_info_path)
-    ImageInfo = namedtuple('ImageInfo', image_info_dict)
+    ImageInfo = namedtuple("ImageInfo", image_info_dict)
     info = ImageInfo(**image_info_dict)
 
     # add additional info - helps to save split paths to txt files
