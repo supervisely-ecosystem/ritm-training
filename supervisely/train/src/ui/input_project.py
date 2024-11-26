@@ -41,7 +41,6 @@ def download(api: sly.Api, task_id, context, state, app_logger):
                 g.api,
                 g.project_id,
                 g.project_dir,
-                cache=g.my_app.cache,
                 progress_cb=download_progress,
                 save_image_info=True,
             )
