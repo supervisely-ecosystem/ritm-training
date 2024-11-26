@@ -43,6 +43,7 @@ def workflow_output(
     mmdet_generated_metadata: dict,
     state: dict,
 ):
+    """Add the best checkpoint to the workflow output."""
     try:
         checkpoints_list = mmdet_generated_metadata.get("checkpoints", [])
         if len(checkpoints_list) == 0:
