@@ -1,8 +1,10 @@
 # git+https://github.com/supervisely/supervisely.git@some-test-branch
 
 imagecorruptions==1.1.2
-supervisely==6.73.234
-supervisely[apps]==6.73.234
+# supervisely==6.73.234
+# supervisely[apps]==6.73.234
+git+https://github.com/supervisely/supervisely.git@tqdm_sly-iter-fix#egg=supervisely
+git+https://github.com/supervisely/supervisely.git@tqdm_sly-iter-fix#egg=supervisely[apps]
 
 scipy
 numpy
