@@ -292,6 +292,11 @@ class ISTrainer(object):
 
         log_prefix = "Val" + self.task_prefix.capitalize()
 
+        logger.info("Info before tqdm initialization")
+        logger.debug("Debug before tqdm initialization")
+        logger.warning("Warning before tqdm initialization")
+        logger.error("Error before tqdm initialization")
+
         if self.is_master:
             tbar = tqdm(self.val_data, file=self.tqdm_out, ncols=100)
             logger.debug("ISTrainer is master. Set tbar to tqdm")
