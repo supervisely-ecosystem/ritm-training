@@ -292,19 +292,14 @@ class ISTrainer(object):
 
         log_prefix = "Val" + self.task_prefix.capitalize()
 
-        logger.info("Info before tqdm initialization")
-        logger.debug("Debug before tqdm initialization")
-        logger.warning("Warning before tqdm initialization")
-        logger.error("Error before tqdm initialization")
-
         if self.is_master:
             tbar = tqdm(self.val_data, file=self.tqdm_out, ncols=100)
-            logger.debug("ISTrainer is master. Set tbar to tqdm")
+            logger.info("ISTrainer is master. Set tbar to tqdm")
 
         else:
             tbar = self.val_data
-            logger.debug("ISTrainer is not master. Skip tqdm and set tbar to self.val_data")
-        logger.debug(f"Attributes of tbar: {dir(tbar)}")
+            logger.info("ISTrainer is not master. Skip tqdm and set tbar to self.val_data")
+        logger.info(f"Attributes of tbar: {dir(tbar)}")
 
         for metric in self.val_metrics:
             metric.reset_epoch_stats()
