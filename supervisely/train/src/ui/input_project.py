@@ -35,7 +35,7 @@ def download(api: sly.Api, task_id, context, state, app_logger):
         else:
             sly.fs.mkdir(g.project_dir)
             download_progress = get_progress_cb(
-                progress_index, "Download project", g.project_info.items_count * 2
+                progress_index, "Download project", g.project_info.items_count
             )
             download_using_cache(
                 g.api,
