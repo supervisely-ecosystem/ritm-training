@@ -1,30 +1,30 @@
 {
-	"name": "Train RITM",
-	"type": "app",
-	"restart_policy": "on_error",
-	"categories": [
-		"neural network",
-		"images",
-		"videos",
-		"dicom",
-		"interactive segmentation",
-		"train"
-	],
-	"description": "Dashboard to configure, start and monitor training",
-	"need_gpu": true,
-	"gpu": "required",
-	"docker_image": "supervisely/ritm-training:1.1.5",
-	"instance_version": "6.9.22",
-	"main_script": "supervisely/train/src/main.py",
-	"gui_template": "supervisely/train/src/gui.html",
-	"task_location": "workspace_tasks",
-	"icon": "https://i.imgur.com/UwsMZ6X.png",
-	"icon_background": "#FFFFFF",
-	"context_menu": {
-		"target": ["images_project"],
-		"context_root": "Neural Networks",
-		"context_category": "RITM"
-	},
-	"poster": "https://user-images.githubusercontent.com/106374579/187906520-671c4261-8253-449b-94cd-03227968b077.png",
-	"community_agent": false
+  "name": "Train RITM",
+  "type": "app",
+  "restart_policy": "on_error",
+  "categories": [
+    "neural network",
+    "images",
+    "videos",
+    "dicom",
+    "interactive segmentation",
+    "train"
+  ],
+  "description": "Dashboard to configure, start and monitor training",
+  "need_gpu": true,
+  "gpu": "required",
+  "docker_image": "supervisely/ritm-training:1.1.6",
+  "instance_version": "6.14.4",
+  "main_script": "supervisely/train/src/main.py",
+  "gui_template": "supervisely/train/src/gui.html",
+  "task_location": "workspace_tasks",
+  "icon": "https://i.imgur.com/UwsMZ6X.png",
+  "icon_background": "#FFFFFF",
+  "context_menu": {
+    "target": ["images_project"],
+    "context_root": "Neural Networks",
+    "context_category": "RITM"
+  },
+  "poster": "https://user-images.githubusercontent.com/106374579/187906520-671c4261-8253-449b-94cd-03227968b077.png",
+  "community_agent": false
 }

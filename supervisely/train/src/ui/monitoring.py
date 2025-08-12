@@ -1,5 +1,7 @@
 import supervisely as sly
 from functools import partial
+from dataclasses import asdict
+from supervisely.nn.artifacts.artifacts import TrainInfo
 from sly_train_progress import init_progress, _update_progress_ui
 from supervisely.app.v1.widgets.chart import Chart
 import sly_globals as g
@@ -113,7 +115,7 @@ def upload_artifacts_and_log_progress(task_type: str):
     )
 
     # generate metadata file
-    g.sly_ritm.generate_metadata(
+    g.sly_ritm_generated_metadata = g.sly_ritm.generate_metadata(
         app_name=g.sly_ritm.app_name,
         task_id=g.task_id,
         artifacts_folder=remote_artifacts_dir,
@@ -123,6 +125,15 @@ def upload_artifacts_and_log_progress(task_type: str):
         task_type=task_type,
         config_path=None,
     )
+
+    try:
+        sly.logger.info("Creating experiment info")
+        create_experiment("RITM", remote_artifacts_dir, g.artifacts_dir)
+    except Exception as e:
+        sly.logger.error(
+            f"Couldn't create experiment, this training session will not appear in the experiments table. Error: {e}"
+        )
+
     print(f"✅ Training artifacts successfully uploaded to: {res_dir}")
 
     return res_dir
@@ -263,3 +274,38 @@ def train(api: sly.Api, task_id, context, state, app_logger):
         g.api.app.set_fields(g.task_id, fields)
 
         g.my_app.stop()
+
+
+def create_experiment(
+    model_name,
+    remote_dir,
+    local_dir,
+    report_id=None,
+    eval_metrics=None,
+    primary_metric_name=None,
+):
+    train_info = TrainInfo(**g.sly_ritm_generated_metadata)
+    experiment_info = g.sly_ritm.convert_train_to_experiment_info(train_info)
+    experiment_info.experiment_name = f"{g.task_id} {g.project_info.name} {model_name}"
+    experiment_info.model_name = model_name
+    experiment_info.framework_name = f"{g.sly_ritm.framework_name}"
+    experiment_info.train_size = g.train_size
+    experiment_info.val_size = g.val_size
+    experiment_info.evaluation_report_id = report_id
+    experiment_info.experiment_report_id = None
+    if report_id is not None:
+        experiment_info.evaluation_report_link = f"/model-benchmark?id={str(report_id)}"
+    experiment_info.evaluation_metrics = eval_metrics
+
+    experiment_info_json = asdict(experiment_info)
+    experiment_info_json["project_preview"] = g.project_info.image_preview_url
+    experiment_info_json["primary_metric"] = primary_metric_name
+
+    g.api.task.set_output_experiment(g.task_id, experiment_info_json)
+    experiment_info_json.pop("project_preview")
+    experiment_info_json.pop("primary_metric")
+
+    experiment_info_path = os.path.join(local_dir, "experiment_info.json")
+    remote_experiment_info_path = os.path.join(remote_dir, "experiment_info.json")
+    sly.json.dump_json_file(experiment_info_json, experiment_info_path)
+    g.api.file.upload(g.team_id, experiment_info_path, remote_experiment_info_path)

@@ -45,6 +45,8 @@ workspace_id = int(os.environ["context.workspaceId"])
 project_id = int(os.environ["modal.state.slyProjectId"])
 
 sly_ritm = RITM(team_id)
+sly_ritm_generated_metadata = None
+train_size, val_size = None, None
 
 project_info = api.project.get_info_by_id(project_id)
 if project_info is None:
