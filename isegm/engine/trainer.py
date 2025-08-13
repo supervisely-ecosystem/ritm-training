@@ -23,22 +23,28 @@ from sly_train_progress import add_progress_to_request
 
 
 class ISTrainer(object):
-    def __init__(self, model, cfg, model_cfg, loss_cfg,
-                 trainset, valset,
-                 optimizer='adam',
-                 optimizer_params=None,
-                 image_dump_interval=200,
-                 checkpoint_interval=10,
-                 tb_dump_period=25,
-                 max_interactive_points=0,
-                 lr_scheduler=None,
-                 metrics=None,
-                 additional_val_metrics=None,
-                 net_inputs=('images', 'points'),
-                 max_num_next_clicks=0,
-                 click_models=None,
-                 prev_mask_drop_prob=0.0,
-                 ):
+    def __init__(
+        self,
+        model,
+        cfg,
+        model_cfg,
+        loss_cfg,
+        trainset,
+        valset,
+        optimizer="adam",
+        optimizer_params=None,
+        image_dump_interval=200,
+        checkpoint_interval=10,
+        tb_dump_period=25,
+        max_interactive_points=0,
+        lr_scheduler=None,
+        metrics=None,
+        additional_val_metrics=None,
+        net_inputs=("images", "points"),
+        max_num_next_clicks=0,
+        click_models=None,
+        prev_mask_drop_prob=0.0,
+    ):
         self.cfg = cfg
         self.model_cfg = model_cfg
         self.max_interactive_points = max_interactive_points
@@ -67,14 +73,14 @@ class ISTrainer(object):
 
         self.checkpoint_interval = checkpoint_interval
         self.image_dump_interval = image_dump_interval
-        self.task_prefix = ''
+        self.task_prefix = ""
         self.sw = None
 
         self.trainset = trainset
         self.valset = valset
 
-        logger.info(f'Dataset of {trainset.get_samples_number()} samples was loaded for training.')
-        logger.info(f'Dataset of {valset.get_samples_number()} samples was loaded for validation.')
+        logger.info(f"Dataset of {trainset.get_samples_number()} samples was loaded for training.")
+        logger.info(f"Dataset of {valset.get_samples_number()} samples was loaded for validation.")
 
         def worker_init_fn(worker_id):
             np.random.seed(cfg.seed + worker_id)
@@ -82,42 +88,48 @@ class ISTrainer(object):
             torch.manual_seed(cfg.seed + worker_id)
 
         self.train_data = DataLoader(
-            trainset, cfg.batch_size,
+            trainset,
+            cfg.batch_size,
             sampler=get_sampler(trainset, shuffle=True, distributed=cfg.distributed),
-            drop_last=True, pin_memory=True,
+            drop_last=True,
+            pin_memory=True,
             num_workers=cfg.workers,
             worker_init_fn=worker_init_fn,
             persistent_workers=True,
-            prefetch_factor=1
+            prefetch_factor=1,
         )
 
         self.val_data = DataLoader(
-            valset, cfg.val_batch_size,
+            valset,
+            cfg.val_batch_size,
             sampler=get_sampler(valset, shuffle=False, distributed=cfg.distributed),
-            drop_last=True, pin_memory=True,
+            drop_last=True,
+            pin_memory=True,
             num_workers=cfg.workers,
             worker_init_fn=worker_init_fn,
             persistent_workers=True,
-            prefetch_factor=1
+            prefetch_factor=1,
         )
 
         self.optim = get_optimizer(model, optimizer, optimizer_params)
-        
+
         if self.cfg.resume_exp is not None:
             path_to_weights = os.path.join(self.cfg.CHECKPOINTS_PATH, "last_checkpoint.pth")
-            model, self.optim, start_epoch = load_model_and_optim_weights(model, self.optim, path_to_weights)
+            model, self.optim, start_epoch = load_model_and_optim_weights(
+                model, self.optim, path_to_weights
+            )
             self.cfg.start_epoch = start_epoch
         else:
             model = self._load_weights(model)
-        
 
         if cfg.multi_gpu:
-            model = get_dp_wrapper(cfg.distributed)(model, device_ids=cfg.gpu_ids,
-                                                    output_device=cfg.gpu_ids[0])
+            model = get_dp_wrapper(cfg.distributed)(
+                model, device_ids=cfg.gpu_ids, output_device=cfg.gpu_ids[0]
+            )
 
         self.device = cfg.device
         self.net = model.to(self.device)
-        self.lr = optimizer_params['lr']
+        self.lr = optimizer_params["lr"]
 
         if lr_scheduler is not None:
             self.lr_scheduler = lr_scheduler(optimizer=self.optim)
@@ -140,8 +152,8 @@ class ISTrainer(object):
 
         if self.progress_epoch is None:
             self.progress_epoch = sly.Progress("Epochs", num_epochs)
-        logger.info(f'Starting Epoch: {start_epoch + 1}')
-        logger.info(f'Total Epochs: {num_epochs}')
+        logger.info(f"Starting Epoch: {start_epoch + 1}")
+        logger.info(f"Total Epochs: {num_epochs}")
 
         self.validation(0)
         for epoch in range(start_epoch, num_epochs):
@@ -151,15 +163,16 @@ class ISTrainer(object):
 
     def training(self, epoch):
         if self.sw is None and self.is_master:
-            self.sw = SummaryWriterAvg(log_dir=str(self.cfg.LOGS_PATH),
-                                       flush_secs=10, dump_period=self.tb_dump_period)
+            self.sw = SummaryWriterAvg(
+                log_dir=str(self.cfg.LOGS_PATH), flush_secs=10, dump_period=self.tb_dump_period
+            )
 
         if self.cfg.distributed:
             self.train_data.sampler.set_epoch(epoch)
 
-        log_prefix = 'Train' + self.task_prefix.capitalize()
+        log_prefix = "Train" + self.task_prefix.capitalize()
         if self.is_master:
-            tbar = tqdm(self.train_data, file=self.tqdm_out, ncols=100)
+            tbar = tqdm(self.train_data, mininterval=0.1, file=self.tqdm_out, ncols=100)
         else:
             tbar = self.train_data
 
@@ -185,51 +198,73 @@ class ISTrainer(object):
 
             global_step = epoch * len(self.train_data) + i
 
-            loss, losses_logging, splitted_batch_data, outputs = \
-                self.batch_forward(batch_data)
+            loss, losses_logging, splitted_batch_data, outputs = self.batch_forward(batch_data)
 
             self.optim.zero_grad()
             loss.backward()
             self.optim.step()
 
-            losses_logging['overall'] = loss
+            losses_logging["overall"] = loss
             reduce_loss_dict(losses_logging)
 
-            train_loss += losses_logging['overall'].item()
-            g.sly_charts['loss'].append(x=round(global_step / len(tbar), 2), y=round(losses_logging['overall'].item(), 8),
-                                      series_name='train')
+            train_loss += losses_logging["overall"].item()
+            g.sly_charts["loss"].append(
+                x=round(global_step / len(tbar), 2),
+                y=round(losses_logging["overall"].item(), 8),
+                series_name="train",
+            )
             if self.is_master:
                 for loss_name, loss_value in losses_logging.items():
-                    self.sw.add_scalar(tag=f'{log_prefix}Losses/{loss_name}',
-                                       value=loss_value.item(),
-                                       global_step=global_step)
+                    self.sw.add_scalar(
+                        tag=f"{log_prefix}Losses/{loss_name}",
+                        value=loss_value.item(),
+                        global_step=global_step,
+                    )
 
                 for k, v in self.loss_cfg.items():
-                    if '_loss' in k and hasattr(v, 'log_states') and self.loss_cfg.get(k + '_weight', 0.0) > 0:
-                        v.log_states(self.sw, f'{log_prefix}Losses/{k}', global_step)
+                    if (
+                        "_loss" in k
+                        and hasattr(v, "log_states")
+                        and self.loss_cfg.get(k + "_weight", 0.0) > 0
+                    ):
+                        v.log_states(self.sw, f"{log_prefix}Losses/{k}", global_step)
 
-                lr_val = self.optim.param_groups[0]['lr']
-                g.sly_charts['lr'].append(x=round(global_step / len(tbar), 2), y=round(lr_val, 9),
-                                              series_name='LR')
-                self.sw.add_scalar(tag=f'{log_prefix}States/learning_rate',
-                                   value=round(lr_val, 7),
-                                   global_step=global_step)
+                lr_val = self.optim.param_groups[0]["lr"]
+                g.sly_charts["lr"].append(
+                    x=round(global_step / len(tbar), 2), y=round(lr_val, 9), series_name="LR"
+                )
+                self.sw.add_scalar(
+                    tag=f"{log_prefix}States/learning_rate",
+                    value=round(lr_val, 7),
+                    global_step=global_step,
+                )
 
-                tbar.set_description(f'Epoch {epoch + 1}, training loss {train_loss/(i+1):.4f}')
+                tbar.set_description(f"Epoch {epoch + 1}, training loss {train_loss/(i+1):.4f}")
                 for metric in self.train_metrics:
-                    metric.log_states(self.sw, f'{log_prefix}Metrics/{metric.name}', global_step)
+                    metric.log_states(self.sw, f"{log_prefix}Metrics/{metric.name}", global_step)
 
         if self.is_master:
             if self.image_dump_interval > 0 and (epoch + 1) % self.image_dump_interval == 0:
-                self.save_visualization(splitted_batch_data, outputs, epoch + 1, prefix='train')
+                self.save_visualization(splitted_batch_data, outputs, epoch + 1, prefix="train")
 
             for metric in self.train_metrics:
-                self.sw.add_scalar(tag=f'{log_prefix}Metrics/{metric.name}',
-                                   value=metric.get_epoch_value(),
-                                   global_step=epoch + 1, disable_avg=True)
+                self.sw.add_scalar(
+                    tag=f"{log_prefix}Metrics/{metric.name}",
+                    value=metric.get_epoch_value(),
+                    global_step=epoch + 1,
+                    disable_avg=True,
+                )
 
-            save_checkpoint(self.net, self.cfg.CHECKPOINTS_PATH, prefix=self.task_prefix, last=True,
-                            epoch=epoch + 1, multi_gpu=self.cfg.multi_gpu, verbose=False, optimizer=self.optim)
+            save_checkpoint(
+                self.net,
+                self.cfg.CHECKPOINTS_PATH,
+                prefix=self.task_prefix,
+                last=True,
+                epoch=epoch + 1,
+                multi_gpu=self.cfg.multi_gpu,
+                verbose=False,
+                optimizer=self.optim,
+            )
 
             if isinstance(self.checkpoint_interval, (list, tuple)):
                 checkpoint_interval = [x for x in self.checkpoint_interval if x[0] <= epoch][-1][1]
@@ -237,22 +272,28 @@ class ISTrainer(object):
                 checkpoint_interval = self.checkpoint_interval
 
             if (epoch + 1) % checkpoint_interval == 0:
-                save_checkpoint(self.net, self.cfg.CHECKPOINTS_PATH, prefix=self.task_prefix,
-                                epoch=epoch + 1, multi_gpu=self.cfg.multi_gpu)
+                save_checkpoint(
+                    self.net,
+                    self.cfg.CHECKPOINTS_PATH,
+                    prefix=self.task_prefix,
+                    epoch=epoch + 1,
+                    multi_gpu=self.cfg.multi_gpu,
+                )
 
-        if hasattr(self, 'lr_scheduler'):
+        if hasattr(self, "lr_scheduler"):
             self.lr_scheduler.step()
 
     def validation(self, epoch):
         g.api.app.set_field(g.task_id, "state.isValidation", True)
         if self.sw is None and self.is_master:
-            self.sw = SummaryWriterAvg(log_dir=str(self.cfg.LOGS_PATH),
-                                       flush_secs=10, dump_period=self.tb_dump_period)
+            self.sw = SummaryWriterAvg(
+                log_dir=str(self.cfg.LOGS_PATH), flush_secs=10, dump_period=self.tb_dump_period
+            )
 
-        log_prefix = 'Val' + self.task_prefix.capitalize()
+        log_prefix = "Val" + self.task_prefix.capitalize()
 
         if self.is_master:
-            tbar = tqdm(self.val_data, file=self.tqdm_out, ncols=100)
+            tbar = tqdm(self.val_data, mininterval=0.1, file=self.tqdm_out, ncols=100)
         else:
             tbar = self.val_data
 
@@ -265,42 +306,56 @@ class ISTrainer(object):
         self.net.eval()
         for i, batch_data in enumerate(tbar):
             global_step = epoch * len(self.val_data) + i
-            loss, batch_losses_logging, splitted_batch_data, outputs = \
-                self.batch_forward(batch_data, validation=True)
+            loss, batch_losses_logging, splitted_batch_data, outputs = self.batch_forward(
+                batch_data, validation=True
+            )
 
-            batch_losses_logging['overall'] = loss
+            batch_losses_logging["overall"] = loss
             reduce_loss_dict(batch_losses_logging)
             for loss_name, loss_value in batch_losses_logging.items():
                 losses_logging[loss_name].append(loss_value.item())
 
-            val_loss += batch_losses_logging['overall'].item()
+            val_loss += batch_losses_logging["overall"].item()
 
             if self.is_master:
-                tbar.set_description(f'Epoch {epoch + 1}, validation loss: {val_loss/(i + 1):.4f}')
+                tbar.set_description(f"Epoch {epoch + 1}, validation loss: {val_loss/(i + 1):.4f}")
                 for metric in self.val_metrics:
-                    metric.log_states(self.sw, f'{log_prefix}Metrics/{metric.name}', global_step)
+                    metric.log_states(self.sw, f"{log_prefix}Metrics/{metric.name}", global_step)
 
         if self.is_master:
             if self.image_dump_interval > 0 and (epoch + 1) % self.image_dump_interval == 0:
-                self.save_visualization(splitted_batch_data, outputs, epoch + 1, prefix='val')
+                self.save_visualization(splitted_batch_data, outputs, epoch + 1, prefix="val")
 
             for loss_name, loss_values in losses_logging.items():
-                self.sw.add_scalar(tag=f'{log_prefix}Losses/{loss_name}', value=np.array(loss_values).mean(),
-                                   global_step=epoch + 1, disable_avg=True)
+                self.sw.add_scalar(
+                    tag=f"{log_prefix}Losses/{loss_name}",
+                    value=np.array(loss_values).mean(),
+                    global_step=epoch + 1,
+                    disable_avg=True,
+                )
 
             for metric in self.val_metrics:
-                if metric.name == 'AdaptiveIoU':
+                if metric.name == "AdaptiveIoU":
                     metric_val = metric.get_epoch_value()
-                    g.sly_charts['val_iou'].append(x=epoch + 1, y=metric_val,
-                                                   series_name='val')
+                    g.sly_charts["val_iou"].append(x=epoch + 1, y=metric_val, series_name="val")
 
                     if metric_val > self.best_val_metric:
                         self.best_val_metric = metric_val
-                        save_checkpoint(self.net, self.cfg.CHECKPOINTS_PATH, prefix=self.task_prefix,
-                                        epoch=epoch + 1, multi_gpu=self.cfg.multi_gpu, best=True)
+                        save_checkpoint(
+                            self.net,
+                            self.cfg.CHECKPOINTS_PATH,
+                            prefix=self.task_prefix,
+                            epoch=epoch + 1,
+                            multi_gpu=self.cfg.multi_gpu,
+                            best=True,
+                        )
 
-                self.sw.add_scalar(tag=f'{log_prefix}Metrics/{metric.name}', value=metric.get_epoch_value(),
-                                   global_step=epoch + 1, disable_avg=True)
+                self.sw.add_scalar(
+                    tag=f"{log_prefix}Metrics/{metric.name}",
+                    value=metric.get_epoch_value(),
+                    global_step=epoch + 1,
+                    disable_avg=True,
+                )
 
     def batch_forward(self, batch_data, validation=False):
         metrics = self.val_metrics if validation else self.train_metrics
@@ -308,7 +363,11 @@ class ISTrainer(object):
 
         with torch.set_grad_enabled(not validation):
             batch_data = {k: v.to(self.device) for k, v in batch_data.items()}
-            image, gt_mask, points = batch_data['images'], batch_data['instances'], batch_data['points']
+            image, gt_mask, points = (
+                batch_data["images"],
+                batch_data["instances"],
+                batch_data["points"],
+            )
             orig_image, orig_gt_mask, orig_points = image.clone(), gt_mask.clone(), points.clone()
 
             prev_output = torch.zeros_like(image, dtype=torch.float32)[:, :1, :, :]
@@ -329,39 +388,59 @@ class ISTrainer(object):
                     else:
                         eval_model = self.click_models[click_indx]
 
-                    net_input = torch.cat((image, prev_output), dim=1) if self.net.with_prev_mask else image
-                    prev_output = torch.sigmoid(eval_model(net_input, points)['instances'])
+                    net_input = (
+                        torch.cat((image, prev_output), dim=1) if self.net.with_prev_mask else image
+                    )
+                    prev_output = torch.sigmoid(eval_model(net_input, points)["instances"])
 
                     points = get_next_points(prev_output, orig_gt_mask, points, click_indx + 1)
 
                     if not validation:
                         self.net.train()
 
-                if self.net.with_prev_mask and self.prev_mask_drop_prob > 0 and last_click_indx is not None:
-                    zero_mask = np.random.random(size=prev_output.size(0)) < self.prev_mask_drop_prob
+                if (
+                    self.net.with_prev_mask
+                    and self.prev_mask_drop_prob > 0
+                    and last_click_indx is not None
+                ):
+                    zero_mask = (
+                        np.random.random(size=prev_output.size(0)) < self.prev_mask_drop_prob
+                    )
                     prev_output[zero_mask] = torch.zeros_like(prev_output[zero_mask])
 
-            batch_data['points'] = points
+            batch_data["points"] = points
 
             net_input = torch.cat((image, prev_output), dim=1) if self.net.with_prev_mask else image
             output = self.net(net_input, points)
 
             loss = 0.0
-            loss = self.add_loss('instance_loss', loss, losses_logging, validation,
-                                 lambda: (output['instances'], batch_data['instances']))
-            loss = self.add_loss('instance_aux_loss', loss, losses_logging, validation,
-                                 lambda: (output['instances_aux'], batch_data['instances']))
+            loss = self.add_loss(
+                "instance_loss",
+                loss,
+                losses_logging,
+                validation,
+                lambda: (output["instances"], batch_data["instances"]),
+            )
+            loss = self.add_loss(
+                "instance_aux_loss",
+                loss,
+                losses_logging,
+                validation,
+                lambda: (output["instances_aux"], batch_data["instances"]),
+            )
 
             if self.is_master:
                 with torch.no_grad():
                     for m in metrics:
-                        m.update(*(output.get(x) for x in m.pred_outputs),
-                                 *(batch_data[x] for x in m.gt_outputs))
+                        m.update(
+                            *(output.get(x) for x in m.pred_outputs),
+                            *(batch_data[x] for x in m.gt_outputs),
+                        )
         return loss, losses_logging, batch_data, output
 
     def add_loss(self, loss_name, total_loss, losses_logging, validation, lambda_loss_inputs):
         loss_cfg = self.loss_cfg if not validation else self.val_loss_cfg
-        loss_weight = loss_cfg.get(loss_name + '_weight', 0.0)
+        loss_weight = loss_cfg.get(loss_name + "_weight", 0.0)
         if loss_weight > 0.0:
             loss_criterion = loss_cfg.get(loss_name)
             loss = loss_criterion(*lambda_loss_inputs())
@@ -379,18 +458,21 @@ class ISTrainer(object):
 
         if not output_images_path.exists():
             output_images_path.mkdir(parents=True)
-        image_name_prefix = f'{epoch:06d}'
+        image_name_prefix = f"{epoch:06d}"
 
         def _save_image(suffix, image):
-            cv2.imwrite(str(output_images_path / f'{image_name_prefix}_{suffix}.jpg'),
-                        image, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            cv2.imwrite(
+                str(output_images_path / f"{image_name_prefix}_{suffix}.jpg"),
+                image,
+                [cv2.IMWRITE_JPEG_QUALITY, 85],
+            )
 
-        images = splitted_batch_data['images']
-        points = splitted_batch_data['points']
-        instance_masks = splitted_batch_data['instances']
+        images = splitted_batch_data["images"]
+        points = splitted_batch_data["points"]
+        instance_masks = splitted_batch_data["instances"]
 
         gt_instance_masks = instance_masks.cpu().numpy()
-        predicted_instance_masks = torch.sigmoid(outputs['instances']).detach().cpu().numpy()
+        predicted_instance_masks = torch.sigmoid(outputs["instances"]).detach().cpu().numpy()
         points = points.detach().cpu().numpy()
 
         image_blob, points = images[0], points[0]
@@ -400,15 +482,17 @@ class ISTrainer(object):
         image = image_blob.cpu().numpy() * 255
         image = image.transpose((1, 2, 0))
 
-        image_with_points = draw_points(image, points[:self.max_interactive_points], (0, 255, 0))
-        image_with_points = draw_points(image_with_points, points[self.max_interactive_points:], (0, 0, 255))
+        image_with_points = draw_points(image, points[: self.max_interactive_points], (0, 255, 0))
+        image_with_points = draw_points(
+            image_with_points, points[self.max_interactive_points :], (0, 0, 255)
+        )
 
         gt_mask[gt_mask < 0] = 0.25
         gt_mask = draw_probmap(gt_mask)
         predicted_mask = draw_probmap(predicted_mask)
         viz_image = np.hstack((image_with_points, gt_mask, predicted_mask)).astype(np.uint8)
 
-        _save_image('instance_segmentation', viz_image[:, :, ::-1])
+        _save_image("instance_segmentation", viz_image[:, :, ::-1])
 
     def _load_weights(self, net):
         if self.cfg.weights is not None:
@@ -418,11 +502,11 @@ class ISTrainer(object):
             else:
                 raise RuntimeError(f"=> no checkpoint found at '{self.cfg.weights}'")
         elif self.cfg.resume_exp is not None:
-            checkpoints = list(self.cfg.CHECKPOINTS_PATH.glob(f'{self.cfg.resume_prefix}*.pth'))
+            checkpoints = list(self.cfg.CHECKPOINTS_PATH.glob(f"{self.cfg.resume_prefix}*.pth"))
             assert len(checkpoints) == 1
 
             checkpoint_path = checkpoints[0]
-            logger.info(f'Load checkpoint from path: {checkpoint_path}')
+            logger.info(f"Load checkpoint from path: {checkpoint_path}")
             load_weights(net, str(checkpoint_path))
         return net
 
@@ -439,8 +523,8 @@ def get_next_points(pred, gt, points, click_indx, pred_thresh=0.49):
     fn_mask = np.logical_and(gt, pred < pred_thresh)
     fp_mask = np.logical_and(np.logical_not(gt), pred > pred_thresh)
 
-    fn_mask = np.pad(fn_mask, ((0, 0), (1, 1), (1, 1)), 'constant').astype(np.uint8)
-    fp_mask = np.pad(fp_mask, ((0, 0), (1, 1), (1, 1)), 'constant').astype(np.uint8)
+    fn_mask = np.pad(fn_mask, ((0, 0), (1, 1), (1, 1)), "constant").astype(np.uint8)
+    fp_mask = np.pad(fp_mask, ((0, 0), (1, 1), (1, 1)), "constant").astype(np.uint8)
     num_points = points.size(1) // 2
     points = points.clone()
 
@@ -471,14 +555,14 @@ def get_next_points(pred, gt, points, click_indx, pred_thresh=0.49):
 
 def load_weights(model, path_to_weights):
     current_state_dict = model.state_dict()
-    new_state_dict = torch.load(path_to_weights, map_location='cpu')['state_dict']
+    new_state_dict = torch.load(path_to_weights, map_location="cpu")["state_dict"]
     current_state_dict.update(new_state_dict)
     model.load_state_dict(current_state_dict)
 
 
 def load_model_and_optim_weights(model, optim, path_to_weights):
-    checkpoint = torch.load(path_to_weights, map_location='cpu')
-    model.load_state_dict(checkpoint['state_dict'])
-    optim.load_state_dict(checkpoint['optim_state_dict'])
-    epoch = checkpoint['epoch']
+    checkpoint = torch.load(path_to_weights, map_location="cpu")
+    model.load_state_dict(checkpoint["state_dict"])
+    optim.load_state_dict(checkpoint["optim_state_dict"])
+    epoch = checkpoint["epoch"]
     return model, optim, epoch
