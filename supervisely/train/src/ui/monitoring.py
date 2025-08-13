@@ -1,4 +1,23 @@
 import supervisely as sly
+
+import time
+import supervisely.task.progress as sly_progress
+
+# tqdm path for compatibility with supervisely==6.73.418
+defaults = [
+    ("mininterval", 0.1),
+    ("maxinterval", 10.0),
+    ("miniters", 1),
+    ("delay", 0.0),
+    ("start_t", time.time()),
+    ("last_print_t", time.time()),
+    ("last_print_n", 0),
+    ("n", 0),
+]
+for name, value in defaults:
+    if not hasattr(sly_progress.tqdm_sly, name):
+        setattr(sly_progress.tqdm_sly, name, value)
+
 from functools import partial
 from dataclasses import asdict
 from supervisely.nn.artifacts.artifacts import TrainInfo

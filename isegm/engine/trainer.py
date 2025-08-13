@@ -172,7 +172,7 @@ class ISTrainer(object):
 
         log_prefix = "Train" + self.task_prefix.capitalize()
         if self.is_master:
-            tbar = tqdm(self.train_data, mininterval=0.1, file=self.tqdm_out, ncols=100)
+            tbar = tqdm(self.train_data, file=self.tqdm_out, ncols=100)
         else:
             tbar = self.train_data
 
@@ -293,7 +293,7 @@ class ISTrainer(object):
         log_prefix = "Val" + self.task_prefix.capitalize()
 
         if self.is_master:
-            tbar = tqdm(self.val_data, mininterval=0.1, file=self.tqdm_out, ncols=100)
+            tbar = tqdm(self.val_data, file=self.tqdm_out, ncols=100)
         else:
             tbar = self.val_data
 

@@ -10,7 +10,6 @@ RUN wget -O /ritm_models/coco_lvis_h32_itermask.pth https://github.com/supervise
 
 # For PyTorch 1.10.0
 RUN pip3 install --no-cache-dir setuptools==59.5.0
-# tqdm 5+ breaks supervisely's tqdm wrapper (tqdm_sly)
 RUN pip3 install --no-cache-dir tqdm==4.66.4
 # ---------------------------------------------- #
 
