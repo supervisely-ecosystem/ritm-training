@@ -3,7 +3,7 @@ import supervisely as sly
 import time
 import supervisely.task.progress as sly_progress
 
-# tqdm path for compatibility with supervisely==6.73.418
+# tqdm path for compatibility with supervisely==6.73.424
 defaults = [
     ("mininterval", 0.1),
     ("maxinterval", 10.0),
