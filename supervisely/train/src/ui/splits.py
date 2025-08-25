@@ -4,7 +4,7 @@ import os
 import random
 from collections import namedtuple
 
-ItemInfo = namedtuple('ItemInfo', ['dataset_name', 'name', 'img_path', 'ann_path'])
+ItemInfo = namedtuple("ItemInfo", ["dataset_name", "name", "img_path", "ann_path"])
 train_set = None
 val_set = None
 
@@ -12,6 +12,7 @@ items_to_ignore: dict = {}
 
 train_set_path = os.path.join(g.my_app.data_dir, "train.json")
 val_set_path = os.path.join(g.my_app.data_dir, "val.json")
+
 
 def init(project_info, project_meta: sly.ProjectMeta, data, state):
     data["randomSplit"] = [
@@ -32,13 +33,9 @@ def init(project_info, project_meta: sly.ProjectMeta, data, state):
         "count": {
             "total": project_info.items_count,
             "train": train_count,
-            "val": project_info.items_count - train_count
+            "val": project_info.items_count - train_count,
         },
-        "percent": {
-            "total": 100,
-            "train": train_percent,
-            "val": 100 - train_percent
-        },
+        "percent": {"total": 100, "train": train_percent, "val": 100 - train_percent},
         "shareImagesBetweenSplits": False,
         "sliderDisabled": False,
     }
@@ -81,29 +78,24 @@ def refresh_table():
         "count": {
             "total": total_items_count,
             "train": train_count,
-            "val": total_items_count - train_count
+            "val": total_items_count - train_count,
         },
-        "percent": {
-            "total": 100,
-            "train": train_percent,
-            "val": 100 - train_percent
-        },
+        "percent": {"total": 100, "train": train_percent, "val": 100 - train_percent},
         "shareImagesBetweenSplits": False,
         "sliderDisabled": False,
     }
 
     fields = [
-        {'field': 'state.randomSplit', 'payload': random_split_tab},
-        {'field': 'data.totalImagesCount', 'payload': total_items_count},
+        {"field": "state.randomSplit", "payload": random_split_tab},
+        {"field": "data.totalImagesCount", "payload": total_items_count},
     ]
     g.api.app.set_fields(g.task_id, fields)
-
 
 
 def get_train_val_splits_by_count(train_count, val_count):
     global items_to_ignore
     ignored_count = sum([len(ds_items) for ds_items in items_to_ignore.values()])
-    
+
     if g.project_fs.total_items != train_count + val_count + ignored_count:
         raise ValueError("total_count != train_count + val_count + ignored_count")
     all_items = []
@@ -111,24 +103,32 @@ def get_train_val_splits_by_count(train_count, val_count):
         for item_name in dataset:
             if item_name in items_to_ignore[dataset.name]:
                 continue
-            all_items.append(ItemInfo(dataset_name=dataset.name,
-                                name=item_name,
-                                img_path=dataset.get_img_path(item_name),
-                                ann_path=dataset.get_ann_path(item_name)))
+            all_items.append(
+                ItemInfo(
+                    dataset_name=dataset.name,
+                    name=item_name,
+                    img_path=dataset.get_img_path(item_name),
+                    ann_path=dataset.get_ann_path(item_name),
+                )
+            )
     random.shuffle(all_items)
     train_items = all_items[:train_count]
     val_items = all_items[train_count:]
     return train_items, val_items
 
 
-def get_train_val_splits_by_tag(train_tag_name, val_tag_name, untagged="ignore", double_tagged="ignore"):
+def get_train_val_splits_by_tag(
+    train_tag_name, val_tag_name, untagged="ignore", double_tagged="ignore"
+):
     global items_to_ignore
     untagged_actions = ["ignore", "train", "val"]
     double_tagged_actions = ["ignore", "train", "val"]
     if untagged not in untagged_actions:
         raise ValueError(f"Unknown untagged action {untagged}. Should be one of {untagged_actions}")
     if double_tagged not in double_tagged_actions:
-        raise ValueError(f"Unknown double tagged action {double_tagged}. Should be one of {double_tagged_actions}")
+        raise ValueError(
+            f"Unknown double tagged action {double_tagged}. Should be one of {double_tagged_actions}"
+        )
 
     train_items = []
     val_items = []
@@ -142,7 +142,10 @@ def get_train_val_splits_by_tag(train_tag_name, val_tag_name, untagged="ignore",
             info = ItemInfo(dataset.name, item_name, img_path, ann_path)
 
             ann = sly.Annotation.load_json_file(ann_path, g.project_meta)
-            if ann.img_tags.get(train_tag_name) is not None and ann.img_tags.get(val_tag_name) is not None:
+            if (
+                ann.img_tags.get(train_tag_name) is not None
+                and ann.img_tags.get(val_tag_name) is not None
+            ):
                 # multiple tagged item
                 if double_tagged == "ignore":
                     ignored_double_tagged_cnt += 1
@@ -165,6 +168,7 @@ def get_train_val_splits_by_tag(train_tag_name, val_tag_name, untagged="ignore",
                 elif untagged == "val":
                     val_items.append(info)
     return train_items, val_items, ignored_untagged_cnt, ignored_double_tagged_cnt
+
 
 def get_train_val_splits_by_dataset(train_datasets, val_datasets):
     def _add_items_to_list(datasets_names, items_list):
@@ -199,8 +203,11 @@ def get_train_val_sets(state):
         val_tag_name = state["valTagName"]
         add_untagged_to = state["untaggedImages"]
         add_double_tagged_to = state["doubleTaggedImages"]
-        train_set, val_set, ignored_untagged_cnt, ignored_double_tagged_cnt = get_train_val_splits_by_tag(train_tag_name, val_tag_name,
-                                                                     add_untagged_to, add_double_tagged_to)
+        train_set, val_set, ignored_untagged_cnt, ignored_double_tagged_cnt = (
+            get_train_val_splits_by_tag(
+                train_tag_name, val_tag_name, add_untagged_to, add_double_tagged_to
+            )
+        )
         return train_set, val_set, ignored_untagged_cnt, ignored_double_tagged_cnt
     elif split_method == "datasets":
         train_datasets = state["trainDatasets"]
@@ -233,44 +240,51 @@ def create_splits(api: sly.Api, task_id, context, state, app_logger):
     try:
         api.task.set_field(task_id, "state.splitInProgress", True)
         if state["splitMethod"] == "tags":
-            train_set, val_set, ignored_untagged_cnt, ignored_double_tagged_cnt = get_train_val_sets(state)
+            train_set, val_set, ignored_untagged_cnt, ignored_double_tagged_cnt = (
+                get_train_val_sets(state)
+            )
         else:
             train_set, val_set = get_train_val_sets(state)
 
         verify_train_val_sets(train_set, val_set)
+        g.train_size, g.val_size = len(train_set), len(val_set)
         step_done = True
     except Exception as e:
         train_set = None
         val_set = None
+        g.train_size, g.val_size = None, None
         step_done = False
         raise e
     finally:
         fields = [
             {"field": "state.splitInProgress", "payload": False},
             {"field": "data.done3", "payload": step_done},
-            {"field": "state.trainImagesCount", "payload": None if train_set is None else len(train_set)},
+            {
+                "field": "state.trainImagesCount",
+                "payload": None if train_set is None else len(train_set),
+            },
             {"field": "state.valImagesCount", "payload": None if val_set is None else len(val_set)},
             {"field": "state.ignoredUntaggedImages", "payload": ignored_untagged_cnt},
             {"field": "state.ignoredDoubleTaggedImages", "payload": ignored_double_tagged_cnt},
         ]
         if step_done is True:
-            fields.extend([
-                {"field": "state.collapsed4", "payload": False},
-                {"field": "state.disabled4", "payload": False},
-                {"field": "state.activeStep", "payload": 4},
-            ])
+            fields.extend(
+                [
+                    {"field": "state.collapsed4", "payload": False},
+                    {"field": "state.disabled4", "payload": False},
+                    {"field": "state.activeStep", "payload": 4},
+                ]
+            )
         g.api.app.set_fields(g.task_id, fields)
     if train_set is not None:
         _save_set_to_json(train_set_path, train_set)
     if val_set is not None:
         _save_set_to_json(val_set_path, val_set)
 
+
 def _save_set_to_json(save_path, items):
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     res = []
     for item in items:
-        res.append({
-            "dataset_name": item.dataset_name,
-            "item_name": item.name
-        })
+        res.append({"dataset_name": item.dataset_name, "item_name": item.name})
     sly.json.dump_json_file(res, save_path)
