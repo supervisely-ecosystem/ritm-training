@@ -14,7 +14,7 @@
   <a href="#Acknowledgment">Acknowledgment</a>
 </p>
 
-[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervisely.com/apps/supervisely-ecosystem/ritm-training/supervisely/train)
+[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](../../../../supervisely-ecosystem/ritm-training/supervisely/train)
 [![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervisely.com/slack) 
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/ritm-training)
 [![views](https://app.supervisely.com/img/badges/views/supervisely-ecosystem/ritm-training/supervisely/train.png)](https://supervisely.com)
@@ -48,11 +48,11 @@ Available 4 pretrained checkpoints based on HRNet for interactive click-based se
 You can use served model in next Supervisely Applications ⬇️ 
   
 
-- [RITM interactive segmentation SmartTool](https://ecosystem.supervisely.com/apps/supervisely-ecosystem%2Fritm-interactive-segmentation%2Fsupervisely) - app allows to apply your trained model to your data in real time interactively. Just run app and specify path to your custom model, open your data project and enjoy fast labeling!
+- [RITM interactive segmentation SmartTool](../../../../supervisely-ecosystem/supervisely-ecosystem%2Fritm-interactive-segmentation%2Fsupervisely) - app allows to apply your trained model to your data in real time interactively. Just run app and specify path to your custom model, open your data project and enjoy fast labeling!
    
     <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/ritm-interactive-segmentation/supervisely" src="https://i.imgur.com/CCnlZJP.png" width="350px"/> 
 
-- [Flying Objects](https://ecosystem.supervisely.com/apps/flying-objects) - app allows to generate synthetic data for training RITM model. Configure background images and labeled segments and you'll get a mix. Flexible app setting allow train strong models even on an extremely small labeled data.
+- [Flying Objects](../../../../supervisely-ecosystem/flying-objects) - app allows to generate synthetic data for training RITM model. Configure background images and labeled segments and you'll get a mix. Flexible app setting allow train strong models even on an extremely small labeled data.
    
     <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/flying-objects" src="https://i.imgur.com/x5cafOU.png" width="350px"/>
 
