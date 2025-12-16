@@ -23,4 +23,4 @@ COPY dev_requirements.txt dev_requirements.txt
 RUN pip install -r dev_requirements.txt
 RUN pip install protobuf==3.20.3
 
-LABEL python_sdk_version=6.73.424
+LABEL python_sdk_version="6.73.486"
