@@ -22,5 +22,7 @@ RUN pip install future cffi ninja
 COPY dev_requirements.txt dev_requirements.txt
 RUN pip install -r dev_requirements.txt
 RUN pip install protobuf==3.20.3
+# zstd >=1.5.6.7 segfaults on import under Ubuntu 20.04 system Python 3.8
+RUN pip install --no-cache-dir zstd==1.5.6.6
 
 LABEL python_sdk_version="6.73.486"
