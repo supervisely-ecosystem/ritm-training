@@ -132,6 +132,11 @@ class ISTrainer(object):
         self.lr = optimizer_params["lr"]
 
         if lr_scheduler is not None:
+            if cfg.start_epoch > 0:
+                # The restored optimizer already holds the decayed lr; reset it so the
+                # replay below decays it once, not twice.
+                for group in self.optim.param_groups:
+                    group["lr"] = group.get("initial_lr", group["lr"])
             self.lr_scheduler = lr_scheduler(optimizer=self.optim)
             if cfg.start_epoch > 0:
                 for _ in range(cfg.start_epoch):
@@ -155,7 +160,8 @@ class ISTrainer(object):
         logger.info(f"Starting Epoch: {start_epoch + 1}")
         logger.info(f"Total Epochs: {num_epochs}")
 
-        self.validation(0)
+        if start_epoch == 0:
+            self.validation(0)
         for epoch in range(start_epoch, num_epochs):
             self.training(epoch)
             if validation:
