@@ -4,6 +4,13 @@ import splits
 
 def init(api: sly.Api, data, state, project_id, project_meta: sly.ProjectMeta):
     stats = api.project.get_stats(project_id)
+    images_in_project = stats["images"].get("total", {}).get("imagesInDataset")
+    if g.project_info.items_count == 0 or images_in_project == 0:
+        raise RuntimeError(
+            "Project has no images. If it is still being copied or imported, "
+            "wait for that to finish and relaunch."
+        )
+
     class_images = {}
     for item in stats["images"]["objectClasses"]:
         class_images[item["objectClass"]["name"]] = item["total"]
@@ -14,7 +21,7 @@ def init(api: sly.Api, data, state, project_id, project_meta: sly.ProjectMeta):
 
     class_area = {}
     for item in stats["objectsArea"]["items"]:
-        class_area[item["objectClass"]["name"]] = round(item["total"], 2)
+        class_area[item["objectClass"]["name"]] = round(item["total"] or 0, 2)
 
     # keep only polygon + bitmap (brush) classes
     semantic_classes_json = []
